@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoCl: WearLab at UVA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- GLOBAL STYLES & THEME --- */
         :root {
@@ -14,12 +15,17 @@
             --brand-accent-hover: #f88c22;
             --brand-blue: #232D4B; /* UVA Blue */
             --white: #ffffff;
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --card-hover: 0 10px 25px rgba(0,0,0,0.1);
         }
 
         body {
             margin: 0;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--primary-bg);
+            /* Technical Engineering Grid Background */
+            background-image: radial-gradient(#bdc3c7 1px, transparent 1px);
+            background-size: 20px 20px;
             color: var(--text-main);
             line-height: 1.6;
             display: flex;
@@ -27,42 +33,93 @@
             min-height: 100vh;
         }
 
+        /* --- BACKGROUND WAVES --- */
+        .bg-wave {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            pointer-events: none;
+            background-repeat: repeat-x;
+        }
+        .ecg-wave {
+            opacity: 0.15;
+            background-image: url("data:image/svg+xml,%3Csvg width='800' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,100 L150,100 C160,100 165,90 175,90 C185,90 190,100 200,100 L210,100 L215,115 L225,10 L235,130 L245,100 L260,100 C275,100 285,75 305,75 C325,75 335,100 350,100 L800,100' fill='none' stroke='%23e57200' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            animation: wave-run-ecg 5s linear infinite;
+        }
+        .emg-wave {
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='400' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,100 L50,100 L55,80 L60,120 L65,70 L70,140 L75,60 L80,130 L85,90 L90,110 L95,80 L100,120 L105,100 L200,100 L205,70 L210,130 L215,60 L220,150 L225,50 L230,140 L235,80 L240,110 L245,90 L250,100 L400,100' fill='none' stroke='%23232D4B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            animation: wave-run-emg 2.5s linear infinite;
+        }
+
+        @keyframes wave-run-ecg {
+            0% { background-position: 0px 15vh; }
+            100% { background-position: -800px 15vh; }
+        }
+        @keyframes wave-run-emg {
+            0% { background-position: 0px 75vh; }
+            100% { background-position: -400px 75vh; }
+        }
+
+        /* Hides waves dynamically using Javascript */
+        body.hide-waves .bg-wave {
+            display: none;
+        }
+
         /* --- NAVIGATION BAR --- */
         nav {
             background-color: var(--brand-blue);
             color: var(--white);
-            padding: 1rem 2rem;
+            padding: 0.8rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
             position: sticky;
             top: 0;
             z-index: 1000;
         }
 
+        .nav-left, .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Logo Placeholders */
+        .lab-logo, .uva-logo {
+            height: 40px;
+            object-fit: contain;
+            background: rgba(255,255,255,0.1); 
+            border-radius: 4px;
+            padding: 2px;
+        }
+
         .logo { font-size: 1.5rem; font-weight: bold; letter-spacing: 1px; color: var(--brand-accent); }
         .logo span { color: var(--white); }
 
-        .nav-right-container { display: flex; align-items: center; gap: 20px; }
-        .nav-links { list-style: none; margin: 0; padding: 0; display: flex; gap: 15px; }
+        .nav-center-container { display: flex; align-items: center; gap: 15px; }
+        .nav-links { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
         .nav-links li { cursor: pointer; }
 
         .nav-btn {
             background: none; border: none; color: var(--white);
-            font-size: 1rem; font-weight: 500; cursor: pointer;
-            padding: 8px 16px; border-radius: 4px; transition: all 0.3s ease;
+            font-size: 0.90rem; font-weight: 600; cursor: pointer;
+            padding: 8px 12px; border-radius: 4px; transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 6px;
         }
+        .nav-btn i { font-size: 1.1rem; color: rgba(255,255,255,0.8); transition: color 0.3s ease; }
         .nav-btn:hover, .nav-btn.active { background-color: var(--brand-accent); }
+        .nav-btn:hover i, .nav-btn.active i { color: var(--white); }
 
         /* --- EXTERNAL RESOURCE ICONS & DROPDOWN --- */
         .nav-separator { width: 1px; height: 24px; background-color: rgba(255, 255, 255, 0.3); margin: 0 5px; }
-        .external-icons { display: flex; gap: 20px; align-items: center; }
+        .external-icons { display: flex; gap: 15px; align-items: center; }
         .icon-link { color: rgba(255, 255, 255, 0.8); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .icon-link:hover { color: var(--brand-accent); }
 
         .dropdown { position: relative; display: inline-block; }
-        .dropbtn { background: none; border: none; color: rgba(255, 255, 255, 0.8); cursor: pointer; display: flex; align-items: center; font-family: inherit; font-size: 1rem; transition: color 0.3s ease; }
+        .dropbtn { background: none; border: none; color: rgba(255, 255, 255, 0.8); cursor: pointer; display: flex; align-items: center; font-family: inherit; font-size: 0.95rem; transition: color 0.3s ease; }
         .dropdown:hover .dropbtn { color: var(--brand-accent); }
         .dropdown-content {
             display: none; position: absolute; right: 0; top: 100%;
@@ -76,35 +133,53 @@
         .dropdown:hover .dropdown-content { display: block; }
 
         /* --- PAGE SECTIONS --- */
-        .page-section { display: none; padding: 40px 20px; max-width: 1200px; margin: 0 auto; animation: fadeIn 0.5s ease-in-out; flex: 1; width: 100%; box-sizing: border-box; }
+        .page-section { display: none; padding: 40px 20px; max-width: 95%; margin: 0 auto; animation: fadeIn 0.5s ease-in-out; flex: 1; width: 100%; box-sizing: border-box; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* --- HOME PAGE STYLES --- */
-        .hero { text-align: center; padding: 60px 20px; background: var(--white); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 40px; border-bottom: 5px solid var(--brand-accent); }
+        .hero { text-align: center; padding: 60px 20px; background: var(--white); border-radius: 8px; box-shadow: var(--card-shadow); margin-bottom: 40px; border-bottom: 5px solid var(--brand-accent); }
         .hero h1 { font-size: 2.5rem; color: var(--brand-blue); margin-bottom: 5px; }
         .hero h3 { color: #7f8c8d; font-weight: 400; margin-top: 0; margin-bottom: 25px; }
         .hero p { font-size: 1.2rem; color: var(--text-main); max-width: 800px; margin: 0 auto 30px auto; }
 
         .research-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
-        .research-card { background: var(--white); padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 4px solid var(--brand-blue); }
+        .research-card { background: var(--white); padding: 30px; border-radius: 8px; box-shadow: var(--card-shadow); border-top: 4px solid var(--brand-blue); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .research-card:hover { transform: translateY(-5px); box-shadow: var(--card-hover); }
+
+        /* --- ECOSYSTEM STYLES --- */
+        .section-header { border-bottom: 2px solid #bdc3c7; padding-bottom: 10px; margin-bottom: 30px; color: var(--brand-blue); }
+        
+        .material-card { background: var(--white); border: 1px solid #ecf0f1; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; box-shadow: var(--card-shadow); transition: all 0.3s ease;}
+        .material-card:hover { border-color: var(--brand-accent); box-shadow: var(--card-hover); transform: translateY(-3px);}
+        .material-card h4 { margin: 0 0 10px 0; color: var(--brand-accent); display: flex; justify-content: space-between; align-items: center;}
+        .material-card .badge { background: #ecf0f1; color: var(--text-main); font-size: 0.75rem; padding: 3px 8px; border-radius: 12px; font-weight: bold;}
+        .material-specs { margin-top: auto; padding-top: 15px; border-top: 1px dashed #bdc3c7; font-size: 0.9rem; }
+        .material-link { margin-top: 15px; display: inline-block; font-size: 0.85rem; color: var(--brand-accent); text-decoration: none; font-weight: bold; }
+        .material-link:hover { text-decoration: underline; }
+
+        .app-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .app-card { background: var(--white); padding: 20px; border-radius: 8px; text-align: center; box-shadow: var(--card-shadow); transition: all 0.3s ease; border-bottom: 3px solid transparent; }
+        .app-card:hover { border-bottom-color: var(--brand-blue); transform: translateY(-5px); box-shadow: var(--card-hover); }
+        .app-icon { font-size: 2.5rem; color: var(--brand-accent); margin-bottom: 15px; }
 
         /* --- BUTTONS & UPLOAD --- */
-        .upload-box { border: 2px dashed #bdc3c7; padding: 50px; text-align: center; background: var(--white); border-radius: 8px; margin-top: 20px; }
+        .upload-box { border: 2px dashed #bdc3c7; padding: 50px; text-align: center; background: var(--white); border-radius: 8px; margin-top: 20px; transition: border-color 0.3s ease; }
+        .upload-box:hover { border-color: var(--brand-accent); }
         .btn-primary { background-color: var(--brand-accent); color: var(--white); border: none; padding: 10px 25px; font-size: 1.1rem; border-radius: 5px; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block; }
         .btn-primary:hover { background-color: var(--brand-accent-hover); color: white; }
         .btn-secondary { background-color: var(--brand-blue); color: var(--white); border: none; padding: 10px 25px; font-size: 1.1rem; border-radius: 5px; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block; }
         .btn-secondary:hover { background-color: #1a2238; color: white; }
         
         /* --- CONTACT STYLES --- */
-        .contact-info { background: var(--white); padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .contact-info { background: var(--white); padding: 40px; border-radius: 8px; box-shadow: var(--card-shadow); }
         .contact-info h3 { margin-top: 0; color: var(--brand-blue); }
         footer { text-align: center; padding: 20px; background: var(--brand-blue); color: #bdc3c7; margin-top: auto; }
 
         /* --- EDA TOOL SPECIFIC STYLES --- */
-        .eda-container { display: flex; flex-direction: column; height: 75vh; border: 2px solid #bdc3c7; border-radius: 8px; overflow: hidden; background: #ecf0f1; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .eda-container { display: flex; flex-direction: column; height: 85vh; border: 2px solid #bdc3c7; border-radius: 8px; overflow: hidden; background: #ecf0f1; box-shadow: var(--card-shadow); }
         #eda-toolbar { padding: 10px; background: #2c3e50; color: white; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-        #eda-toolbar button, #eda-toolbar select { padding: 6px 12px; border: none; border-radius: 4px; background: #ecf0f1; cursor: pointer; font-size: 13px; font-weight: 500; outline: none; }
+        #eda-toolbar button, #eda-toolbar select { padding: 6px 12px; border: none; border-radius: 4px; background: #ecf0f1; cursor: pointer; font-size: 13px; font-weight: 500; outline: none; transition: background 0.2s;}
         #eda-toolbar button:hover, #eda-toolbar select:hover { background: #bdc3c7; }
         #eda-toolbar button.active { background: var(--brand-accent); color: white; }
         .eda-separator { width: 1px; height: 24px; background: #7f8c8d; margin: 0 5px; }
@@ -115,36 +190,59 @@
         .btn-export { background: #27ae60 !important; color: white; }
         .btn-export:hover { background: #2ecc71 !important; }
         .btn-danger { background: #e74c3c !important; color: white; }
+
+        /* --- MODAL STYLES --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 2000; justify-content: center; align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: var(--white); padding: 30px 40px; border-radius: 8px; width: 100%; max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal-close {
+            position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #7f8c8d; border: none; background: none;
+        }
+        .modal-close:hover { color: var(--brand-accent); }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--brand-blue); font-size: 0.9rem;}
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; font-family: inherit; transition: all 0.3s ease;}
+        .form-group input:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 2px rgba(229,114,0,0.2); }
+        .modal-title { color: var(--brand-blue); margin-top: 0; margin-bottom: 20px; text-align: left;}
     </style>
 </head>
 <body>
 
+    <div class="bg-wave ecg-wave"></div>
+    <div class="bg-wave emg-wave"></div>
+
     <nav>
-        <div class="logo">SoCl<span>Tool</span></div>
-        <div class="nav-right-container">
+        <div class="nav-left">
+            <img src="wearlab-logo.png" alt="WearLab" class="lab-logo" title="WearLab Logo">
+            <div class="logo">SoCl<span>Tool</span></div>
+        </div>
+
+        <div class="nav-center-container">
             <ul class="nav-links">
-                <li><button class="nav-btn active" onclick="switchTab('home')">Home</button></li>
-                <li><button class="nav-btn" onclick="switchTab('tool')">SoCl Design Tool</button></li>
-                <li><button class="nav-btn" onclick="switchTab('converter')">Image to DST</button></li>
-                <li><button class="nav-btn" onclick="switchTab('contact')">WearLab @ UVA</button></li>
+                <li><button class="nav-btn active" onclick="switchTab('home')"><i class="fas fa-home"></i> Home</button></li>
+                
+                <li><button class="nav-btn" onclick="switchTab('thread')"><i class="fas fa-layer-group"></i> Thread Selection</button></li>
+                <li><button class="nav-btn" onclick="switchTab('apps')"><i class="fas fa-microchip"></i> Designed Prototypes</button></li>
+                <li><button class="nav-btn" onclick="switchTab('tool')"><i class="fas fa-drafting-compass"></i> EDA Tool</button></li>
+                
+                <li><button class="nav-btn" onclick="switchTab('converter')"><i class="fas fa-image"></i> Image to DST</button></li>
+                <li><button class="nav-btn" onclick="switchTab('contact')"><i class="fas fa-envelope"></i> Contact</button></li>
             </ul>
             <div class="nav-separator"></div>
             <div class="external-icons">
                 <a href="https://github.com/Faisal-R2/Programmable-Embroidered-Biopotential-Electrodes" target="_blank" class="icon-link" title="View Source on GitHub">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                    </svg>
+                    <i class="fab fa-github" style="font-size: 1.2rem;"></i>
                 </a>
                 <div class="dropdown">
                     <button class="dropbtn" title="View Published Papers">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                            <polyline points="10 9 9 9 8 9"></polyline>
-                        </svg>
-                        Research Work
+                        <i class="fas fa-book-open" style="margin-right: 6px;"></i> Research
                     </button>
                     <div class="dropdown-content">
                         <a href="https://ieeexplore.ieee.org/abstract/document/11337587/" target="_blank"><strong>IEEE Paper</strong><br>Programmable Embroidered Biopotential Electrodes</a>
@@ -153,74 +251,239 @@
                 </div>
             </div>
         </div>
+
+        <div class="nav-right">
+             <img src="uva-logo.png" alt="UVA Logo" class="uva-logo" title="University of Virginia">
+        </div>
     </nav>
 
     <section id="home" class="page-section active">
-        <div class="hero">
-            <h1>System on Clothing (SoCl)</h1>
-            <h3>Designing the cloud manufacturing network for the Wearable Engineering And Research Lab (WearLab).</h3>
-            <p>Bridging the gap between Electronic Design Automation (EDA) and Cloud Manufacturing to create durable, washable, and comfortable embroidered electronic textiles.</p>
-            <button class="btn-primary" onclick="switchTab('tool')">Launch Design Tool</button>
-            <a href="https://engineering.virginia.edu/labs-groups/wearlab" target="_blank" class="btn-secondary" style="margin-left: 10px;">Visit WearLab</a>
+    <div class="hero">
+        <h1>SoCl: Embroidered Electronic System on Cloth</h1>
+        <h3>Designing embroidered electronic components and circuits directly on fabric.</h3>
+        <p>
+        SoCl transforms electrical specifications and conductive thread properties into manufacturable textile circuit geometries,
+        stitch-level toolpaths, and machine-ready embroidery files.
+        </p>
+        
+        <button class="btn-primary" onclick="handleSignIn()">
+            <i class="fas fa-sign-in-alt" style="margin-right: 5px;"></i> Sign In
+        </button>
+        <button class="btn-secondary" onclick="openSignUpModal()" style="margin-left: 10px;">
+            <i class="fas fa-user-plus" style="margin-right: 5px;"></i> Create Account
+        </button>
+    </div>
+
+    <div class="research-grid">
+        <div class="research-card">
+            <h3 style="color: var(--brand-accent);">
+                <i class="fas fa-microchip"></i> Embroidered Component Library
+            </h3>
+            <p>
+                SoCl introduces an embroidered electronics library for designing fabric-based components such as resistors,
+                capacitors, inductors, conductive traces, contact pads, electrodes, and transistor/IC interfaces directly on cloth.
+            </p>
         </div>
-        <div class="research-grid">
-            <div class="research-card">
-                <h3 style="color: var(--brand-accent);">The Rigid-Flexible Barrier</h3>
-                <p>Traditional wearables rely on rigid PCBs that cause skin irritation during long-term monitoring. We replace rigid packages with flexible, conductive embroidery directly integrated into the textile architecture.</p>
+
+       <div class="research-card">
+    <h3 style="color: var(--brand-accent);">
+        <i class="fas fa-ruler-combined"></i> Material-Aware Design
+    </h3>
+    <p>
+        Conductive thread properties, stitch spacing, and textile substrate behavior are used to generate manufacturable
+        circuit geometries from target electrical specifications.
+    </p>
+</div>
+
+        <div class="research-card">
+            <h3 style="color: var(--brand-accent);">
+                <i class="fas fa-project-diagram"></i> Automated Toolpath Generation
+            </h3>
+            <p>
+                SoCl converts component geometries into stitch-level embroidery toolpaths, managing conductive paths,
+                jumps, trims, and electrical isolation to generate machine-ready embroidery files.
+            </p>
+        </div>
+
+        <div class="research-card">
+            <h3 style="color: var(--brand-accent);">
+                <i class="fas fa-tshirt"></i> Smart Textile Applications
+            </h3>
+            <p>
+                The embroidered component library supports smart clothing prototypes including ECG, EMG, force sensing,
+                sweat sensing, RFID antennas, touch sensors, temperature sensors, and electrical stimulation electrodes.
+            </p>
+        </div>
+    </div>
+</section>
+  <section id="thread" class="page-section">
+    <h2 class="section-header">
+        <i class="fas fa-layer-group" style="margin-right: 10px;"></i>
+        Conductive Thread Library
+    </h2>
+
+    <p style="max-width: 850px; margin: 0 auto 25px auto; color: #6c757d; text-align: center;">
+        Selected conductive threads used in SoCl for embroidered circuit routing, electrodes,
+        passive components, and smart textile prototypes.
+    </p>
+
+    <div class="research-grid">
+
+        <div class="material-card">
+            <h4>HC-12 Thread <span class="badge">Madeira</span></h4>
+            <div class="material-specs">
+                <strong>Resistance:</strong> &lt;100 Ω/m <br>
+                <strong>Function:</strong> ECG / EMG electrodes and Force sensor.
             </div>
-            <div class="research-card">
-                <h3 style="color: var(--brand-accent);">Cloud Manufacturing (MaaS)</h3>
-                <p>By connecting individual designers to a distributed manufacturing cloud, we optimize resource allocation, reducing costs and providing on-demand fabrication of medical-grade smart garments.</p>
+            <a class="material-link" target="_blank" rel="noopener"
+               href="https://www.madeirausa.com/hc-12-sp-highly-conductive-embroidery-thread-12.html">
+                <i class="fas fa-external-link-alt"></i> Datasheet
+            </a>
+        </div>
+
+        <div class="material-card">
+            <h4>HC-40 Thread <span class="badge">Madeira</span></h4>
+            <div class="material-specs">
+                <strong>Resistance:</strong> &lt;300 Ω/m <br>
+                <strong>Function:</strong> Circuit routing / interconnects
             </div>
-            <div class="research-card">
-                <h3 style="color: var(--brand-accent);">Sensors and Electrodes</h3>
-                <p>We are developing embroidered electronic electrodes and sensors to measure vital signals, including EMG, ECG, EEG, force, temperature, and sweat sensing. These sensors enable flexible and comfortable health-monitoring.</p>
+            <a class="material-link" target="_blank" rel="noopener"
+               href="https://www.madeirausa.com/hc-40-highly-conductive-embroidery-thread.html">
+                <i class="fas fa-external-link-alt"></i> Datasheet
+            </a>
+        </div>
+
+        <div class="material-card">
+            <h4>22/7 +110 PET <span class="badge">Shieldex®</span></h4>
+            <div class="material-specs">
+                <strong>Resistance:</strong> ~150K Ω/m <br>
+                <strong>Function:</strong> Embroidered resistors
             </div>
-            <div class="research-card">
-                <h3 style="color: var(--brand-accent);">Algorithmic Toolpaths</h3>
-                <p>Our custom EDA platform bypasses manual, error-prone digitizing. We mathematically synthesize geometries for passive sensors (resistors, capacitors) and explicitly manage machine states to guarantee electrical isolation.</p>
+            <a class="material-link" target="_blank" rel="noopener"
+               href="https://www.shieldex.de/en/products_categories/fibers-yarns/">
+                <i class="fas fa-external-link-alt"></i> Datasheet
+            </a>
+        </div>
+
+        <div class="material-card">
+            <h4>44/10 Silver-Coated Nylon <span class="badge">Shieldex®</span></h4>
+            <div class="material-specs">
+                <strong>Resistance:</strong> &lt;400 Ω/m <br>
+                <strong>Function:</strong> Capacitors / sensor electrodes
+            </div>
+            <a class="material-link" target="_blank" rel="noopener"
+               href="https://www.shieldex.de/en/products_categories/fibers-yarns/">
+                <i class="fas fa-external-link-alt"></i> Datasheet
+            </a>
+        </div>
+
+        <div class="material-card">
+            <h4>2-Ply Stainless Thread <span class="badge">Adafruit</span></h4>
+            <div class="material-specs">
+                <strong>Resistance:</strong> ~ 16 Ω/ft <br>
+                <strong>Function:</strong> Durable traces / pads
+            </div>
+            <a class="material-link" target="_blank" rel="noopener"
+               href="https://www.adafruit.com/product/640">
+                <i class="fas fa-external-link-alt"></i> Datasheet
+            </a>
+        </div>
+
+        <div class="material-card">
+            <h4>3-Ply Conductive Thread <span class="badge">Adafruit</span></h4>
+            <div class="material-specs">
+                <strong>Resistance:</strong> Low Ω/ft <br>
+                <strong>Function:</strong> Power routing / large pads
+            </div>
+            <a class="material-link" target="_blank" rel="noopener"
+               href="https://www.adafruit.com/product/641">
+                <i class="fas fa-external-link-alt"></i> Datasheet
+            </a>
+        </div>
+
+    </div>
+</section>
+
+    <section id="apps" class="page-section">
+        <h2 class="section-header"><i class="fas fa-microchip" style="margin-right: 10px;"></i> Prototyping Applications</h2>
+        <div class="app-grid">
+            <div class="app-card">
+                <div class="app-icon"><i class="fas fa-wave-square"></i></div>
+                <h4>ECG & EMG</h4>
+                <p style="font-size: 0.9rem; color: #7f8c8d;">Biopotential monitoring for cardiac and muscular activity.</p>
+            </div>
+            <div class="app-card">
+                <div class="app-icon"><i class="fas fa-compress-arrows-alt"></i></div>
+                <h4>Force & Strain</h4>
+                <p style="font-size: 0.9rem; color: #7f8c8d;">Measuring biomechanical movement and pressure.</p>
+            </div>
+            <div class="app-card">
+                <div class="app-icon"><i class="fas fa-tint"></i></div>
+                <h4>Sweat Sensor</h4>
+                <p style="font-size: 0.9rem; color: #7f8c8d;">Electrochemical analysis of biomarkers during exertion.</p>
+            </div>
+            <div class="app-card">
+                <div class="app-icon"><i class="fas fa-broadcast-tower"></i></div>
+                <h4>RFID Antennas</h4>
+                <p style="font-size: 0.9rem; color: #7f8c8d;">Embroidered communication coils for passive data transfer.</p>
+            </div>
+            <div class="app-card">
+                <div class="app-icon"><i class="fas fa-bolt"></i></div>
+                <h4>Electrical Stimulation</h4>
+                <p style="font-size: 0.9rem; color: #7f8c8d;">Targeted TENS/EMS therapy directly from the garment.</p>
+            </div>
+            <div class="app-card">
+                <div class="app-icon"><i class="fas fa-fingerprint"></i></div>
+                <h4>Touch Sensors</h4>
+                <p style="font-size: 0.9rem; color: #7f8c8d;">Capacitive touch interfaces woven into sleeves or fabrics.</p>
+            </div>
+            <div class="app-card">
+                <div class="app-icon"><i class="fas fa-temperature-high"></i></div>
+                <h4>Temperature</h4>
+                <p style="font-size: 0.9rem; color: #7f8c8d;">Thermal mapping and body temperature tracking.</p>
             </div>
         </div>
     </section>
 
     <section id="tool" class="page-section">
-        <h2 style="margin-top: 0; color: var(--brand-blue);">Embroidered Circuit EDA</h2>
+        <h2 style="margin-top: 0; color: var(--brand-blue);"><i class="fas fa-drafting-compass" style="margin-right: 10px;"></i> Embroidered Circuit EDA</h2>
         <p style="color: #7f8c8d; margin-bottom: 20px;">Place components, route orthogonal traces, and export your design directly to Tajima machine code (.dst).</p>
         
         <div class="eda-container">
             <div id="eda-toolbar">
-                <button id="btn-new">New</button>
-                <button id="btn-save">Save JSON</button>
-                <button id="btn-load" onclick="document.getElementById('file-input').click()">Load JSON</button>
+                <button id="btn-new"><i class="fas fa-file"></i> New</button>
+                <button id="btn-save"><i class="fas fa-download"></i> Save</button>
+                <button id="btn-load" onclick="document.getElementById('file-input').click()"><i class="fas fa-upload"></i> Load</button>
                 <input type="file" id="file-input" style="display: none;" accept=".json,.embpcb">
                 
                 <div class="eda-separator"></div>
-                <button class="tool-btn active" data-tool="select">Select / Move</button>
+                <button class="tool-btn active" data-tool="select"><i class="fas fa-mouse-pointer"></i> Select</button>
                 <div class="eda-separator"></div>
                 
                 <button class="tool-btn" data-tool="place_R1210">R1210</button>
                 <button class="tool-btn" data-tool="place_C1210">C1210</button>
                 <button class="tool-btn" data-tool="place_SOIC8">SOIC8</button>
-                <button class="tool-btn" data-tool="place_DIP8">DIP8</button>
-                <button class="tool-btn" data-tool="place_PAD8">Pad (8mm)</button>
-                <button class="tool-btn" data-tool="place_EmbR">Emb. Resistor</button>
-                <button class="tool-btn" data-tool="place_EmbC">Emb. Capacitor</button>
+                <button class="tool-btn" data-tool="place_DIP">DIP</button>
+                <button class="tool-btn" data-tool="place_PAD">Pad </button>
+                <button class="tool-btn" data-tool="place_EmbR"><i class="fas fa-wave-square"></i> Emb. R</button>
+                <button class="tool-btn" data-tool="place_EmbC"><i class="fas fa-align-justify"></i> Emb. C</button>
                 
                 <div class="eda-separator"></div>
-                <button class="tool-btn" data-tool="route">Route Trace</button>
+                <button class="tool-btn" data-tool="route"><i class="fas fa-route"></i> Route</button>
                 <select id="grid-select">
                     <option value="0.5">Grid: 0.5 mm</option>
                     <option value="1.0" selected>Grid: 1.0 mm</option>
                     <option value="1.27">Grid: 1.27 mm</option>
-                    <option value="2.5">Grid: 2.5 mm</option>
+                    <option value="2.75">Grid: 2.75 mm</option>
+                    <option value="3.0">Grid: 3.0 mm</option>
+                    <option value="3.5">Grid: 3.5 mm</option>
                 </select>
-                <button id="btn-rotate">Rotate 90°</button>
-                <button id="btn-delete" class="btn-danger">Delete Selected</button>
+                <button id="btn-rotate"><i class="fas fa-sync-alt"></i></button>
+                <button id="btn-delete" class="btn-danger"><i class="fas fa-trash"></i></button>
                 
                 <div class="eda-separator" style="flex-grow: 1; background: transparent;"></div>
-                <button id="btn-export-dst" class="btn-export">Export .DST</button>
+                <button id="btn-export-dst" class="btn-export"><i class="fas fa-cogs"></i> Compile .DST</button>
             </div>
-        
             <div id="eda-workspace">
                 <div id="canvas-wrapper">
                     <canvas id="pcbCanvas"></canvas>
@@ -232,38 +495,106 @@
     </section>
 
     <section id="converter" class="page-section">
-        <h2>Pattern Digitizer: Image to .DST</h2>
+        <h2><i class="fas fa-image" style="margin-right: 10px;"></i> Pattern Digitizer: Image to .DST</h2>
         <p>Upload a clean, high-contrast image of your circuit trace or antenna pattern. Our cloud server will process the geometry and return a machine-executable embroidery file.</p>
         
         <div class="upload-box">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--brand-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--brand-accent); margin-bottom: 15px;"></i>
             <h3>Upload Image</h3>
-            <p style="color: #7f8c8d;">Supports PNG, JPG (Max 5MB)</p>
+            <p style="color: #7f8c8d;">Supports PNG, JPG (Max 10MB)</p>
             <input type="file" id="imageUpload" style="display: none;" accept="image/png, image/jpeg">
             <button class="btn-primary" onclick="document.getElementById('imageUpload').click()">Browse Files</button>
         </div>
     </section>
+<section id="contact" class="page-section">
+    <h2>
+        <i class="fas fa-envelope" style="margin-right: 10px;"></i>
+        Contact & Lab Information
+    </h2>
 
-    <section id="contact" class="page-section">
-        <h2>Contact & Lab Information</h2>
-        <div class="research-grid" style="margin-top: 30px;">
-            <div class="contact-info">
-                <h3>Wearable Engineering And Research Lab (WearLab)</h3>
-                <p><strong>Department of Mechanical and Aerospace Engineering</strong><br>University of Virginia<br>Charlottesville, Virginia<br>USA</p>
-                <a href="https://engineering.virginia.edu/labs-groups/wearlab" target="_blank" class="btn-secondary" style="margin-top: 15px;">Visit Official WearLab Website</a>
-            </div>
-            <div class="contact-info">
-                <h3>Principal Investigators & Researchers</h3>
-                <p><strong>Ye Sun</strong> (Principal Investigator)<br><a href="mailto:dzv7sg@virginia.edu" style="color: var(--brand-accent); text-decoration: none;">dzv7sg@virginia.edu</a></p>
-                <p><strong>Faisal Rehman</strong><br><a href="mailto:qnp9me@virginia.edu" style="color: var(--brand-accent); text-decoration: none;">qnp9me@virginia.edu</a></p>
-                <p><strong>Soroush Zare</strong><br><a href="mailto:cyj7tf@virginia.edu" style="color: var(--brand-accent); text-decoration: none;">cyj7tf@virginia.edu</a></p>
-            </div>
+    <div class="research-grid" style="margin-top: 30px;">
+
+        <div class="contact-info">
+            <h3>Wearable Electronics and Robotics Laboratory</h3>
+            <p>
+                <strong>Room 115, Mechanical Engineering Building</strong><br>
+                Department of Mechanical and Aerospace Engineering<br>
+                University of Virginia<br>
+                122 Engineer's Way<br>
+                Charlottesville, VA 22904, USA
+            </p>
+
+            <a href="https://engineering.virginia.edu/labs-groups/wearlab"
+               target="_blank"
+               class="btn-secondary"
+               style="margin-top: 15px;">
+                Visit Official WEARLab Website
+            </a>
         </div>
-    </section>
+
+        <div class="contact-info">
+            <h3>Principal Investigator</h3>
+            <p>
+                <strong>Dr. Ye (Sarah) Sun</strong><br>
+                Associate Professor, Mechanical and Aerospace Engineering<br>
+                Associate Professor, Electrical and Computer Engineering<br>
+                University of Virginia<br>
+                <strong>Email:</strong>
+                <a href="mailto:dzv7sg@virginia.edu"
+                   style="color: var(--brand-accent); text-decoration: none;">
+                    dzv7sg@virginia.edu
+                </a><br>
+                <a href="https://engineering.virginia.edu/faculty/ye-sarah-sun"
+                   target="_blank"
+                   style="color: var(--brand-accent); text-decoration: none;">
+                    Faculty Profile
+                </a>
+            </p>
+        </div>
+
+        <div class="contact-info">
+            <h3>Researcher</h3>
+            <p>
+                <strong>Faisal Rehman</strong><br>
+                Mechanical and Aerospace Engineering<br>
+                University of Virginia<br>
+              
+                <strong>Email:</strong>
+                <a href="mailto:qnp9me@virginia.edu"
+                   style="color: var(--brand-accent); text-decoration: none;">
+                    qnp9me@virginia.edu
+                </a>
+            </p>
+        </div>
+
+    </div>
+</section>
 
     <footer>
-        <p>&copy; 2026 Wearable Engineering And Research Lab (WearLab). University of Virginia.</p>
+        <p>&copy; 2026 Wearable Lab. University of Virginia.</p>
     </footer>
+
+    <div class="modal-overlay" id="signupModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeSignUpModal()">&times;</button>
+            <h2 class="modal-title"><i class="fas fa-user-plus" style="margin-right: 10px;"></i>Create Account</h2>
+            <form id="signupForm" onsubmit="handleSignUp(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>University / Lab Email</label>
+                    <input type="email" required placeholder="email@university.edu">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Register</button>
+            </form>
+        </div>
+    </div>
 
     <script>
         // --- Tab Switching Logic ---
@@ -274,7 +605,35 @@
             const clickedBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
             if(clickedBtn) clickedBtn.classList.add('active');
             
+            // --- NEW: ONLY SHOW WAVES ON HOME & APPS PAGE ---
+            if (tabId === 'home' || tabId === 'apps') {
+                document.body.classList.remove('hide-waves');
+            } else {
+                document.body.classList.add('hide-waves');
+            }
+            
             if (tabId === 'tool') setTimeout(resize, 50); 
+        }
+
+        // --- Auth Logic (Simulated) ---
+        function handleSignIn() {
+            // Direct user to EDA workspace upon simulated login
+            switchTab('tool');
+        }
+
+        function openSignUpModal() {
+            document.getElementById('signupModal').style.display = 'flex';
+        }
+
+        function closeSignUpModal() {
+            document.getElementById('signupModal').style.display = 'none';
+        }
+
+        function handleSignUp(event) {
+            event.preventDefault(); // Prevent page reload
+            alert("Account Information Collected!\n\n(Database integration pending in future updates)");
+            closeSignUpModal();
+            document.getElementById('signupForm').reset();
         }
 
         // --- EDA Canvas Logic ---
@@ -286,9 +645,9 @@
         const FOOTPRINTS = {
             "R1210": { size: [3.2, 1.6], pads: [{n: "1", size: [2.5, 2.5], rel: [-2.0, 0]}, {n: "2", size: [2.5, 2.5], rel: [2.0, 0]}] },
             "C1210": { size: [3.2, 2.5], pads: [{n: "1", size: [2.5, 2.5], rel: [-2.0, 0]}, {n: "2", size: [2.5, 2.5], rel: [2.0, 0]}] },
-            "SOIC8": { size: [4.9, 3.9], pads: [{n: "1", size: [0.6, 1.75], rel: [-1.905, -2.7]}, {n: "2", size: [0.6, 1.75], rel: [-0.635, -2.7]}, {n: "3", size: [0.6, 1.75], rel: [0.635, -2.7]}, {n: "4", size: [0.6, 1.75], rel: [1.905, -2.7]}, {n: "5", size: [0.6, 1.75], rel: [1.905, 2.7]}, {n: "6", size: [0.6, 1.75], rel: [0.635, 2.7]}, {n: "7", size: [0.6, 1.75], rel: [-0.635, 2.7]}, {n: "8", size: [0.6, 1.75], rel: [-1.905, 2.7]}]},
-            "DIP8": { size: [9.5, 9.5], pads: [{n: "1", size: [1.54, 1.54], rel: [-3.81, -3.81]}, {n: "2", size: [1.54, 1.54], rel: [-1.27, -3.81]}, {n: "3", size: [1.54, 1.54], rel: [1.27, -3.81]}, {n: "4", size: [1.54, 1.54], rel: [3.81, -3.81]}, {n: "5", size: [1.54, 1.54], rel: [3.81, 3.81]}, {n: "6", size: [1.54, 1.54], rel: [1.27, 3.81]}, {n: "7", size: [1.54, 1.54], rel: [-1.27, 3.81]}, {n: "8", size: [1.54, 1.54], rel: [-3.81, 3.81]}]},
-            "PAD8": { size: [8, 8], pads: [{n: "1", size: [8, 8], rel: [0, 0]}]}
+            "SOIC": { size: [4.9, 3.9], pads: [{n: "1", size: [0.6, 1.75], rel: [-1.905, -2.7]}, {n: "2", size: [0.6, 1.75], rel: [-0.635, -2.7]}, {n: "3", size: [0.6, 1.75], rel: [0.635, -2.7]}, {n: "4", size: [0.6, 1.75], rel: [1.905, -2.7]}, {n: "5", size: [0.6, 1.75], rel: [1.905, 2.7]}, {n: "6", size: [0.6, 1.75], rel: [0.635, 2.7]}, {n: "7", size: [0.6, 1.75], rel: [-0.635, 2.7]}, {n: "8", size: [0.6, 1.75], rel: [-1.905, 2.7]}]},
+            "DIP": { size: [9.5, 9.5], pads: [{n: "1", size: [1.54, 1.54], rel: [-3.81, -3.81]}, {n: "2", size: [1.54, 1.54], rel: [-1.27, -3.81]}, {n: "3", size: [1.54, 1.54], rel: [1.27, -3.81]}, {n: "4", size: [1.54, 1.54], rel: [3.81, -3.81]}, {n: "5", size: [1.54, 1.54], rel: [3.81, 3.81]}, {n: "6", size: [1.54, 1.54], rel: [1.27, 3.81]}, {n: "7", size: [1.54, 1.54], rel: [-1.27, 3.81]}, {n: "8", size: [1.54, 1.54], rel: [-3.81, 3.81]}]},
+            "PAD": { size: [8, 8], pads: [{n: "1", size: [8, 8], rel: [0, 0]}]}
         };
 
         let state = { 
@@ -523,14 +882,29 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save(); ctx.translate(state.offsetX, state.offsetY); ctx.scale(state.scale, state.scale);
 
+            // UPGRADE: Infinite Grid rendering across the entire canvas area
             ctx.strokeStyle = CONFIG.COLORS.GRID; ctx.lineWidth = 1 / state.scale; ctx.beginPath();
-            for(let x=0; x<=CONFIG.BOARD_W_MM; x+=CONFIG.GRID_MM) { ctx.moveTo(x, 0); ctx.lineTo(x, CONFIG.BOARD_H_MM); }
-            for(let y=0; y<=CONFIG.BOARD_H_MM; y+=CONFIG.GRID_MM) { ctx.moveTo(0, y); ctx.lineTo(CONFIG.BOARD_W_MM, y); }
+            
+            let minX = -state.offsetX / state.scale;
+            let minY = -state.offsetY / state.scale;
+            let maxX = (canvas.width - state.offsetX) / state.scale;
+            let maxY = (canvas.height - state.offsetY) / state.scale;
+
+            let startX = Math.floor(minX / CONFIG.GRID_MM) * CONFIG.GRID_MM;
+            let startY = Math.floor(minY / CONFIG.GRID_MM) * CONFIG.GRID_MM;
+
+            for(let x = startX; x <= maxX; x += CONFIG.GRID_MM) { ctx.moveTo(x, minY); ctx.lineTo(x, maxY); }
+            for(let y = startY; y <= maxY; y += CONFIG.GRID_MM) { ctx.moveTo(minX, y); ctx.lineTo(maxX, y); }
             ctx.stroke();
 
-            ctx.strokeStyle = "black"; ctx.strokeRect(0, 0, CONFIG.BOARD_W_MM, CONFIG.BOARD_H_MM);
+            // UPGRADE: Distinct dark border for the physical 235x135mm Embroidery Hoop/Board bounds
+            ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 2 / state.scale; 
+            ctx.strokeRect(0, 0, CONFIG.BOARD_W_MM, CONFIG.BOARD_H_MM);
+
+            // Render all user components
             state.traces.forEach(t => t.draw(ctx)); state.components.forEach(c => c.draw(ctx));
 
+            // Render routing line
             if (state.tool === 'route' && state.routingStartNode) {
                 const rawMouseMm = { x: (state.mousePx.x - state.offsetX) / state.scale, y: (state.mousePx.y - state.offsetY) / state.scale };
                 const routeNode = getSnappedRouteNode(rawMouseMm.x, rawMouseMm.y);
@@ -575,12 +949,11 @@
                 } else if (typeStr === 'EmbC') {
                     let uT = prompt("Enter Number of Turns (Fingers):", "12"); 
                     let uL = prompt("Enter Finger Length (mm):", "20"); 
-                    // NO PROMPTS FOR SPACING OR PERMITTIVITY. HARDCODED DEFAULTS APPLIED HERE.
                     if (uT && uL) { 
                         params.turns = parseInt(uT); 
                         params.length = parseFloat(uL); 
-                        params.spacing = 0.70;         // <-- Hardcoded Spacing
-                        params.permittivity = 1.5;     // <-- Hardcoded Permittivity
+                        params.spacing = 0.70;         
+                        params.permittivity = 1.5;     
                     } else { 
                         state.tool = 'select'; document.querySelector('[data-tool="select"]').click(); return; 
                     }
@@ -656,18 +1029,14 @@
             const status = document.getElementById('statusbar'); status.innerText = "Exporting... Please wait.";
             const payload = { components: state.components.map(c => ({ ref: c.ref, posMm: c.posMm, rotDeg: c.rotDeg, type: c.type, params: c.params, pads: c.fp ? c.fp.pads : [], customGeo: c.customGeo })), traces: state.traces.map(t => ({ startMm: t.getStartPt(), endMm: t.getEndPt() })) };
             try {
-                // Ensure this is pointing to 127.0.0.1 for local testing
                 const response = await fetch('http://127.0.0.1:5000/export-dst', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                
                 if (!response.ok) {
                     const errData = await response.json();
                     throw new Error(errData.error || "Server failed to export layout.");
                 }
-                
                 const blob = await response.blob(); const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a'); a.href = url; a.download = "layout_export.dst"; document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url);
                 updateStatus(); alert("Export Successful!");
-                
             } catch (err) { 
                 let msg = err.message;
                 if (msg === "Failed to fetch") {
@@ -692,7 +1061,6 @@
             formData.append('image', file);
 
             try {
-                // Pointing to 127.0.0.1 for local testing
                 const response = await fetch('http://127.0.0.1:5000/convert-image', {
                     method: 'POST',
                     body: formData
@@ -727,10 +1095,10 @@
             }
         });
 
-        // Initialization
+        // UPGRADE: Force board origin to top-left corner instead of arbitrary center calculation
         resize();
-        state.offsetX = (canvas.width - (CONFIG.BOARD_W_MM * state.scale)) / 2;
-        state.offsetY = (canvas.height - (CONFIG.BOARD_H_MM * state.scale)) / 2;
+        state.offsetX = 20; 
+        state.offsetY = 20; 
         render();
     </script>
 </body>
