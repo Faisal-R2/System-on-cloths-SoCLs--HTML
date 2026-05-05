@@ -10,4 +10,4 @@ SOCL
 
 # Webpage : 
 
-<img width="1907" height="968" alt="image" src="https://github.com/user-attachments/assets/4bdbac60-0325-4406-952e-27cc3ff49a00" />
+<img width="1895" height="1020" alt="image" src="https://github.com/user-attachments/assets/5b5c3d20-e594-4629-ae02-6b4e238053ed" />
