@@ -159,9 +159,17 @@
         .material-link:hover { text-decoration: underline; }
 
         .app-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .app-card { background: var(--white); padding: 20px; border-radius: 8px; text-align: center; box-shadow: var(--card-shadow); transition: all 0.3s ease; border-bottom: 3px solid transparent; }
+        .app-card { background: var(--white); padding: 20px; border-radius: 8px; text-align: center; box-shadow: var(--card-shadow); transition: all 0.3s ease; border-bottom: 3px solid transparent; display: flex; flex-direction: column;}
         .app-card:hover { border-bottom-color: var(--brand-blue); transform: translateY(-5px); box-shadow: var(--card-hover); }
         .app-icon { font-size: 2.5rem; color: var(--brand-accent); margin-bottom: 15px; }
+
+        .app-link-btn {
+            display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem;
+            color: var(--brand-blue); background: #ecf0f1; padding: 6px 12px;
+            border-radius: 4px; text-decoration: none; font-weight: 600;
+            transition: all 0.2s; justify-content: center;
+        }
+        .app-link-btn:hover { background: var(--brand-accent); color: var(--white); }
 
         /* --- BUTTONS & UPLOAD --- */
         .upload-box { border: 2px dashed #bdc3c7; padding: 50px; text-align: center; background: var(--white); border-radius: 8px; margin-top: 20px; transition: border-color 0.3s ease; }
@@ -224,36 +232,38 @@
             <div class="logo">SoCl<span>Tool</span></div>
         </div>
 
-        <div class="nav-center-container">
-            <ul class="nav-links">
-                <li><button class="nav-btn active" onclick="switchTab('home')"><i class="fas fa-home"></i> Home</button></li>
-                
-                <li><button class="nav-btn" onclick="switchTab('thread')"><i class="fas fa-layer-group"></i> Thread Selection</button></li>
-                <li><button class="nav-btn" onclick="switchTab('apps')"><i class="fas fa-microchip"></i> Designed Prototypes</button></li>
-                <li><button class="nav-btn" onclick="switchTab('tool')"><i class="fas fa-drafting-compass"></i> EDA Tool</button></li>
-                
-                <li><button class="nav-btn" onclick="switchTab('converter')"><i class="fas fa-image"></i> Image to DST</button></li>
-                <li><button class="nav-btn" onclick="switchTab('contact')"><i class="fas fa-envelope"></i> Contact</button></li>
-            </ul>
-            <div class="nav-separator"></div>
-            <div class="external-icons">
-                <a href="https://github.com/Faisal-R2/Programmable-Embroidered-Biopotential-Electrodes" target="_blank" class="icon-link" title="View Source on GitHub">
-                    <i class="fab fa-github" style="font-size: 1.2rem;"></i>
-                </a>
-                <div class="dropdown">
-                    <button class="dropbtn" title="View Published Papers">
-                        <i class="fas fa-book-open" style="margin-right: 6px;"></i> Research
-                    </button>
-                    <div class="dropdown-content">
-                        <a href="https://ieeexplore.ieee.org/abstract/document/11337587/" target="_blank"><strong>IEEE Paper</strong><br>Programmable Embroidered Biopotential Electrodes</a>
-                        <a href="https://ieeexplore.ieee.org/abstract/document/10614413" target="_blank"><strong>IEEE Paper</strong><br>Cloud Manufacturing for Embroidered Electronics</a>
+        <div style="display: flex; align-items: center; gap: 30px;">
+            <div class="nav-center-container">
+                <ul class="nav-links">
+                    <li><button class="nav-btn active" onclick="switchTab('home')"><i class="fas fa-home"></i> Home</button></li>
+                    
+                    <li><button class="nav-btn" onclick="switchTab('thread')"><i class="fas fa-layer-group"></i> Thread Selection</button></li>
+                    <li><button class="nav-btn" onclick="switchTab('apps')"><i class="fas fa-microchip"></i> Designed Prototypes</button></li>
+                    <li><button class="nav-btn" onclick="switchTab('tool')"><i class="fas fa-drafting-compass"></i> EDA Tool</button></li>
+                    
+                    <li><button class="nav-btn" onclick="switchTab('converter')"><i class="fas fa-image"></i> PNG to DST</button></li>
+                    <li><button class="nav-btn" onclick="switchTab('contact')"><i class="fas fa-envelope"></i> Contact</button></li>
+                </ul>
+                <div class="nav-separator"></div>
+                <div class="external-icons">
+                    <a href="https://github.com/Faisal-R2/Programmable-Embroidered-Biopotential-Electrodes" target="_blank" class="icon-link" title="View Source on GitHub">
+                        <i class="fab fa-github" style="font-size: 1.2rem;"></i>
+                    </a>
+                    <div class="dropdown">
+                        <button class="dropbtn" title="View Published Papers">
+                            <i class="fas fa-book-open" style="margin-right: 6px;"></i> Research
+                        </button>
+                        <div class="dropdown-content">
+                            <a href="https://ieeexplore.ieee.org/abstract/document/11337587/" target="_blank"><strong>IEEE Paper</strong><br>Programmable Embroidered Biopotential Electrodes</a>
+                            <a href="https://ieeexplore.ieee.org/abstract/document/10614413" target="_blank"><strong>IEEE Paper</strong><br>Cloud Manufacturing for Embroidered Electronics</a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="nav-right">
-             <img src="uva-logo.png" alt="UVA Logo" class="uva-logo" title="University of Virginia">
+            <div class="nav-right">
+                 <img src="uva-logo.png" alt="UVA Logo" class="uva-logo" title="University of Virginia">
+            </div>
         </div>
     </nav>
 
@@ -410,12 +420,19 @@
             <div class="app-card">
                 <div class="app-icon"><i class="fas fa-wave-square"></i></div>
                 <h4>ECG & EMG</h4>
-                <p style="font-size: 0.9rem; color: #7f8c8d;">Biopotential monitoring for cardiac and muscular activity.</p>
+                <p style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 15px;">Biopotential monitoring for cardiac and muscular activity.</p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: auto;">
+                    <a href="https://ieeexplore.ieee.org/abstract/document/11337587" target="_blank" class="app-link-btn" title="IEEE Paper"><i class="fas fa-file-pdf"></i> Paper</a>
+                    <a href="https://github.com/Faisal-R2/Programmable-Embroidered-Biopotential-Electrodes" target="_blank" class="app-link-btn" title="GitHub Repository"><i class="fab fa-github"></i> GitHub</a>
+                </div>
             </div>
             <div class="app-card">
                 <div class="app-icon"><i class="fas fa-compress-arrows-alt"></i></div>
                 <h4>Force & Strain</h4>
-                <p style="font-size: 0.9rem; color: #7f8c8d;">Measuring biomechanical movement and pressure.</p>
+                <p style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 15px;">Measuring biomechanical movement and pressure.</p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: auto;">
+                    <a href="https://ieeexplore.ieee.org/abstract/document/10614413" target="_blank" class="app-link-btn" title="IEEE Paper"><i class="fas fa-file-pdf"></i> Paper</a>
+                </div>
             </div>
             <div class="app-card">
                 <div class="app-icon"><i class="fas fa-tint"></i></div>
@@ -462,11 +479,12 @@
                 
                 <button class="tool-btn" data-tool="place_R1210">R1210</button>
                 <button class="tool-btn" data-tool="place_C1210">C1210</button>
-                <button class="tool-btn" data-tool="place_SOIC8">SOIC8</button>
-                <button class="tool-btn" data-tool="place_DIP">DIP</button>
+                <button class="tool-btn" data-tool="place_DIP">DIP-8</button>
+                <button class="tool-btn" data-tool="place_DIP14">DIP-14</button>
                 <button class="tool-btn" data-tool="place_PAD">Pad </button>
                 <button class="tool-btn" data-tool="place_EmbR"><i class="fas fa-wave-square"></i> Emb. R</button>
                 <button class="tool-btn" data-tool="place_EmbC"><i class="fas fa-align-justify"></i> Emb. C</button>
+                <button class="tool-btn" data-tool="place_EmbL"> <i class="fas fa-border-all" style="margin-right: 5px;"></i> Emb. Ind</button>
                 
                 <div class="eda-separator"></div>
                 <button class="tool-btn" data-tool="route"><i class="fas fa-route"></i> Route</button>
@@ -475,14 +493,16 @@
                     <option value="1.0" selected>Grid: 1.0 mm</option>
                     <option value="1.27">Grid: 1.27 mm</option>
                     <option value="2.75">Grid: 2.75 mm</option>
-                    <option value="3.0">Grid: 3.0 mm</option>
-                    <option value="3.5">Grid: 3.5 mm</option>
+                    <option value="3.0">Grid:  3.0 mm</option>
+                    <option value="3.5">Grid:  3.5 mm</option>
+                    <option value="4.0">Grid:  4.0 mm</option>
+                    <option value="4.5">Grid:  4.5 mm</option>
                 </select>
                 <button id="btn-rotate"><i class="fas fa-sync-alt"></i></button>
                 <button id="btn-delete" class="btn-danger"><i class="fas fa-trash"></i></button>
                 
                 <div class="eda-separator" style="flex-grow: 1; background: transparent;"></div>
-                <button id="btn-export-dst" class="btn-export"><i class="fas fa-cogs"></i> Compile .DST</button>
+                <button id="btn-export-dst" class="btn-export"><i class="fas fa-cogs"></i> Export(DST)File</button>
             </div>
             <div id="eda-workspace">
                 <div id="canvas-wrapper">
@@ -647,6 +667,7 @@
             "C1210": { size: [3.2, 2.5], pads: [{n: "1", size: [2.5, 2.5], rel: [-2.0, 0]}, {n: "2", size: [2.5, 2.5], rel: [2.0, 0]}] },
             "SOIC": { size: [4.9, 3.9], pads: [{n: "1", size: [0.6, 1.75], rel: [-1.905, -2.7]}, {n: "2", size: [0.6, 1.75], rel: [-0.635, -2.7]}, {n: "3", size: [0.6, 1.75], rel: [0.635, -2.7]}, {n: "4", size: [0.6, 1.75], rel: [1.905, -2.7]}, {n: "5", size: [0.6, 1.75], rel: [1.905, 2.7]}, {n: "6", size: [0.6, 1.75], rel: [0.635, 2.7]}, {n: "7", size: [0.6, 1.75], rel: [-0.635, 2.7]}, {n: "8", size: [0.6, 1.75], rel: [-1.905, 2.7]}]},
             "DIP": { size: [9.5, 9.5], pads: [{n: "1", size: [1.54, 1.54], rel: [-3.81, -3.81]}, {n: "2", size: [1.54, 1.54], rel: [-1.27, -3.81]}, {n: "3", size: [1.54, 1.54], rel: [1.27, -3.81]}, {n: "4", size: [1.54, 1.54], rel: [3.81, -3.81]}, {n: "5", size: [1.54, 1.54], rel: [3.81, 3.81]}, {n: "6", size: [1.54, 1.54], rel: [1.27, 3.81]}, {n: "7", size: [1.54, 1.54], rel: [-1.27, 3.81]}, {n: "8", size: [1.54, 1.54], rel: [-3.81, 3.81]}]},
+            "DIP14": { size: [19.05, 9.5], pads: [{n: "1", size: [1.54, 1.54], rel: [-7.62, -3.81]}, {n: "2", size: [1.54, 1.54], rel: [-5.08, -3.81]}, {n: "3", size: [1.54, 1.54], rel: [-2.54, -3.81]}, {n: "4", size: [1.54, 1.54], rel: [0, -3.81]}, {n: "5", size: [1.54, 1.54], rel: [2.54, -3.81]}, {n: "6", size: [1.54, 1.54], rel: [5.08, -3.81]}, {n: "7", size: [1.54, 1.54], rel: [7.62, -3.81]}, {n: "8", size: [1.54, 1.54], rel: [7.62, 3.81]}, {n: "9", size: [1.54, 1.54], rel: [5.08, 3.81]}, {n: "10", size: [1.54, 1.54], rel: [2.54, 3.81]}, {n: "11", size: [1.54, 1.54], rel: [0, 3.81]}, {n: "12", size: [1.54, 1.54], rel: [-2.54, 3.81]}, {n: "13", size: [1.54, 1.54], rel: [-5.08, 3.81]}, {n: "14", size: [1.54, 1.54], rel: [-7.62, 3.81]}]},
             "PAD": { size: [8, 8], pads: [{n: "1", size: [8, 8], rel: [0, 0]}]}
         };
 
@@ -933,7 +954,7 @@
                 for (let c of [...state.components].reverse()) { if (c.hitTest(wX, wY)) { state.selected.add(c); draggingComp = c; break; } }
             } else if (state.tool.startsWith('place_')) {
                 saveState(); const typeStr = state.tool.replace('place_', '');
-                let prefix = "U"; if (typeStr.includes("R")) prefix = "R"; if (typeStr.includes("C")) prefix = "C"; if (typeStr.includes("PAD")) prefix = "P";
+                let prefix = "U"; if (typeStr.includes("R")) prefix = "R"; if (typeStr.includes("C")) prefix = "C"; if (typeStr.includes("PAD")) prefix = "P"; if (typeStr === "SOIC8") prefix = "L";
                 let num = 1; while (state.components.find(c => c.ref === `${prefix}${num}`)) num++;
                 let params = {};
                 
@@ -1005,7 +1026,7 @@
                 else if (e.key.toLowerCase() === 'y') { e.preventDefault(); if (state.redoStack.length > 0) { const current = { components: state.components.map(c => ({ id: c.id, ref: c.ref, type: c.type, posMm: [...c.posMm], rotDeg: c.rotDeg, params: JSON.parse(JSON.stringify(c.params)), customGeo: JSON.parse(JSON.stringify(c.customGeo)) })), traces: state.traces.map(t => ({ startNode: {...t.startNode}, endNode: {...t.endNode} })) }; state.undoStack.push(current); loadSnapshot(state.redoStack.pop()); updateStatus(); } }
                 else if (e.key.toLowerCase() === 'a') { e.preventDefault(); state.selected.clear(); state.components.forEach(c => state.selected.add(c)); state.traces.forEach(t => state.selected.add(t)); render(); } 
                 else if (e.key.toLowerCase() === 'c') { e.preventDefault(); state.clipboard = []; state.selected.forEach(item => { if (item.ref) { state.clipboard.push({ type: item.type, posMm: [...item.posMm], rotDeg: item.rotDeg, params: JSON.parse(JSON.stringify(item.params)) }); } }); updateStatus(); }
-                else if (e.key.toLowerCase() === 'v') { e.preventDefault(); if (!state.clipboard || state.clipboard.length === 0) return; saveState(); state.selected.clear(); state.clipboard.forEach(clip => { let prefix = "U"; if (clip.type.includes("R")) prefix = "R"; if (clip.type.includes("C")) prefix = "C"; if (clip.type.includes("PAD")) prefix = "P"; let num = 1; while (state.components.find(c => c.ref === `${prefix}${num}`)) num++; let newPos = [clip.posMm[0] + CONFIG.GRID_MM, clip.posMm[1] + CONFIG.GRID_MM]; let newComp = new Component(`${prefix}${num}`, clip.type, newPos, clip.params); newComp.rotDeg = clip.rotDeg; state.components.push(newComp); state.selected.add(newComp); clip.posMm = newPos; }); render(); }
+                else if (e.key.toLowerCase() === 'v') { e.preventDefault(); if (!state.clipboard || state.clipboard.length === 0) return; saveState(); state.selected.clear(); state.clipboard.forEach(clip => { let prefix = "U"; if (clip.type.includes("R")) prefix = "R"; if (clip.type.includes("C")) prefix = "C"; if (clip.type.includes("PAD")) prefix = "P"; if (clip.type === "SOIC8") prefix = "L"; let num = 1; while (state.components.find(c => c.ref === `${prefix}${num}`)) num++; let newPos = [clip.posMm[0] + CONFIG.GRID_MM, clip.posMm[1] + CONFIG.GRID_MM]; let newComp = new Component(`${prefix}${num}`, clip.type, newPos, clip.params); newComp.rotDeg = clip.rotDeg; state.components.push(newComp); state.selected.add(newComp); clip.posMm = newPos; }); render(); }
                 else if (e.key.toLowerCase() === 'd') { e.preventDefault(); document.getElementById('btn-delete').click(); }
             } else if (e.key === 'Delete' || e.key === 'Backspace') { if (state.selected.size > 0) document.getElementById('btn-delete').click(); }
         });
