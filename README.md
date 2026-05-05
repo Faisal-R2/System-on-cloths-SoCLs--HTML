@@ -9,4 +9,5 @@ SOCL
 4. python app.py
 
 # Webpage : 
-<img width="1906" height="900" alt="image" src="https://github.com/user-attachments/assets/2151104c-ab42-49f6-ac0e-3245725726f7" />
+
+<img width="1907" height="968" alt="image" src="https://github.com/user-attachments/assets/4bdbac60-0325-4406-952e-27cc3ff49a00" />
