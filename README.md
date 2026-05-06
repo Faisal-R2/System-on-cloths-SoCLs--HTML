@@ -5,8 +5,9 @@ SOCL
 
 1. pip install flask-cors opencv-python numpy
 2. E: 
-3. path : cd E:\SOCL-HTML 
-4. python app.py
+3. path : cd E:\SOCL-HTML
+4. 
+5. python app.py
 
 # Webpage : 
 
