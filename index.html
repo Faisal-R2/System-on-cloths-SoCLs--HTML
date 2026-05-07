@@ -818,36 +818,87 @@
                     this.customGeo.snapPoints.push([pad_x + pad_width/2, pad_y_lower + pad_height/2]);
                     this.customGeo.snapPoints.push([pad_x + pad_width/2, pad_y_upper + pad_height/2]);
                 } else if (this.type === "EmbL") {
+                    
+                    // --- NEW RF CENTER-PAD INDUCTOR GEOMETRY ---
                     let turns = this.params.turns || 5;
-                    let side = this.params.side || 20;
-                    let spacing = this.params.spacing || 1.5;
-                    let lead = 4;
-                    let left = -side / 2, right = side / 2, top = -side / 2, bottom = side / 2;
-                    let path = [[left - lead, top], [left, top]];
+                    let w = 0.20;           // Fixed Thread diameter (mm)
+                    let s = 0.60;           // Fixed Spacing (mm)
+                    let d_in = 4.0;         // Inner clearance for pad
+                    let center_pad = 1.5;   // Center Pad anchor size
 
-                    for (let i = 0; i < turns; i++) {
-                        if (right <= left || bottom <= top) break;
-                        path.push([right, top]);
-                        path.push([right, bottom]);
-                        path.push([left, bottom]);
+                    // Geometry calc
+                    const side_traces_width = (turns * w) + ((turns - 1) * s);
+                    const d_out = d_in + (2 * side_traces_width);
+                    
+                    // Inductance math for Label
+                    const d_avg = (d_out + d_in) / 2;
+                    const rho = (d_out - d_in) / (d_out + d_in);
+                    const mu0 = 4 * Math.PI * 1e-7;
+                    const L_henries = (2.34 * mu0 * Math.pow(turns, 2) * (d_avg * 1e-3)) / (1 + 2.75 * rho);
+                    const L_nH = L_henries * 1e9;
 
-                        left += spacing;
-                        top += spacing;
-                        if (right <= left || bottom <= top) break;
+                    const pad_w = 2.54; 
+                    const pad_h = 1.14; 
+                    const pad_gap = 2.03; 
+                    const pad_clearance = 2.0; 
 
-                        path.push([left, top]);
-                        right -= spacing;
-                        bottom -= spacing;
+                    const startL = d_out;
+                    const pitch = w + s; 
+
+                    const padY = (startL/2) + pad_clearance;
+                    const pad_cy = padY + (pad_h/2);
+                    
+                    const pad1_cx = -pad_gap/2 - pad_w/2;
+                    const pad2_cx = pad_gap/2 + pad_w/2;
+
+                    let path = [];
+                    const safe_route_y = (startL/2) + pad_clearance * 0.5;
+                    
+                    let x = -startL/2;
+                    let y = startL/2;
+
+                    // Route from Pad 1 up to start of spiral
+                    path.push([pad1_cx, pad_cy]);
+                    path.push([pad1_cx, safe_route_y]);
+                    path.push([x, safe_route_y]);
+                    path.push([x, y]);
+
+                    let current_L = startL;
+                    let dir = 0; 
+                    
+                    for (let i = 0; i < turns * 4; i++) {
+                        if (i > 0 && i % 2 === 0) current_L -= pitch;
+                        
+                        if (dir === 0) y -= current_L;
+                        else if (dir === 1) x += current_L;
+                        else if (dir === 2) y += current_L;
+                        else if (dir === 3) x -= current_L;
+                        
+                        path.push([x, y]);
+                        dir = (dir + 1) % 4;
+                    }
+                    
+                    path.push([0, 0]); // Terminate precisely at center pad
+                    raw_paths.push(path);
+
+                    // Cross-hatch solid fill paths for DST Export Pads
+                    let step = w * 0.5; // dense fill
+                    function fillPad(cx, cy, pw, ph) {
+                        let px = cx - pw/2, py = cy - ph/2;
+                        for (let lx = px; lx <= px + pw + 0.001; lx += step) raw_paths.push([[lx, py], [lx, py + ph]]);
+                        for (let ly = py; ly <= py + ph + 0.001; ly += step) raw_paths.push([[px, ly], [px + pw, ly]]);
                     }
 
-                    let last = path[path.length - 1];
-                    path.push([last[0] + lead, last[1]]);
+                    fillPad(pad1_cx, pad_cy, pad_w, pad_h);
+                    fillPad(pad2_cx, pad_cy, pad_w, pad_h); // Isolated Pad 2 for Jumper wire
+                    fillPad(0, 0, center_pad, center_pad);
 
-                    raw_paths.push(path);
-                    this.customGeo.label = turns + "T";
-                    this.customGeo.snapPoints.push(path[0]);
-                    this.customGeo.snapPoints.push(path[path.length - 1]);
+                    this.customGeo.label = L_nH.toFixed(1) + " nH";
+                    this.customGeo.snapPoints.push([pad1_cx, pad_cy]);
+                    this.customGeo.snapPoints.push([pad2_cx, pad_cy]);
+                    this.customGeo.snapPoints.push([0, 0]);
                 }
+                
                 if (raw_paths.length > 0) {
                     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
                     raw_paths.forEach(path => path.forEach(p => { if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0]; if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1]; }));
@@ -872,7 +923,7 @@
                         ctx.strokeRect(p.rel[0] - p.size[0]/2, p.rel[1] - p.size[1]/2, p.size[0], p.size[1]);
                     }
                 } else if (this.isCustom && this.customGeo && this.customGeo.paths) {
-                    ctx.strokeStyle = isSel ? CONFIG.COLORS.SELECTED : (this.type==="EmbR" ? "red" : (this.type==="EmbC" ? "blue" : "purple")); 
+                    ctx.strokeStyle = isSel ? CONFIG.COLORS.SELECTED : (this.type==="EmbR" ? "red" : (this.type==="EmbC" ? "blue" : "#0d6efd")); 
                     ctx.lineWidth = 0.3;
                     for (let path of this.customGeo.paths) {
                         if (path.length === 0) continue;
@@ -1022,13 +1073,12 @@
                         state.tool = 'select'; document.querySelector('[data-tool="select"]').click(); return; 
                     }
                 } else if (typeStr === 'EmbL') {
-                    let uT = prompt("Enter Number of Turns:", "5");
-                    let uSide = prompt("Enter Outer Side Length (mm):", "20");
-                    let uSpacing = prompt("Enter Trace Spacing (mm):", "1.5");
-                    if (uT && uSide && uSpacing) {
+                    
+                    // --- ONLY ASK FOR TURNS ---
+                    let uT = prompt("Enter Number of Turns for RF Inductor:", "5");
+                    
+                    if (uT) {
                         params.turns = parseInt(uT);
-                        params.side = parseFloat(uSide);
-                        params.spacing = parseFloat(uSpacing);
                     } else {
                         state.tool = 'select'; document.querySelector('[data-tool="select"]').click(); return;
                     }
@@ -1119,54 +1169,6 @@
                 }
                 alert("Error during export: \n\n" + msg);
                 updateStatus(); 
-            }
-        });
-
-        // --- Image to DST Converter Logic ---
-        document.getElementById('imageUpload').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const btn = e.target.nextElementSibling; 
-            const originalText = btn.innerText;
-            btn.innerText = "Converting... Please wait";
-            btn.disabled = true;
-
-            const formData = new FormData();
-            formData.append('image', file);
-
-            try {
-                const response = await fetch('http://127.0.0.1:5000/convert-image', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    const errData = await response.json();
-                    throw new Error(errData.error || "Server failed to convert image.");
-                }
-
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "converted_image.dst";
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                
-                alert("Image successfully converted to .DST!");
-                
-            } catch (err) {
-                let msg = err.message;
-                if (msg === "Failed to fetch") {
-                    msg = "Failed to fetch!\n\nThis means your HTML cannot connect to the Python backend.\n\nFIX:\n1. Open your Anaconda Prompt.\n2. Run: pip install opencv-python\n3. Start the server: python app.py\n4. Make sure it says 'Running on http://127.0.0.1:5000'";
-                }
-                alert("Error during conversion: \n\n" + msg);
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-                e.target.value = ''; 
             }
         });
 
