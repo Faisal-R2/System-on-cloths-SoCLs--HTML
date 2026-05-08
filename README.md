@@ -6,7 +6,7 @@ SOCL
 1. pip install flask-cors opencv-python numpy
 2. E: 
 3. path : cd E:\SOCL-HTML
-4. 
+4. cd E:\SOCL_HTML\EmbroideryPCB
 5. python app.py
 
 # Webpage : 
