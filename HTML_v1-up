@@ -358,12 +358,14 @@
         }
 
         .screenshot-frame img {
-            width: 100%;
-            min-height: 260px;
-            object-fit: cover;
+            width: 520px;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
             background: linear-gradient(135deg, #f8f9fa, #ecf0f1);
             border-radius: 8px;
             display: block;
+            margin: 0 auto;
         }
 
         .feature-list {
@@ -512,7 +514,7 @@
             .product-showcase, .early-access-box { grid-template-columns: 1fr; }
             .early-access-actions { justify-content: stretch; }
             .outline-light-btn { width: 100%; }
-            .screenshot-frame img { min-height: 190px; }
+            .screenshot-frame img { width: 100%; max-width: 520px; }
         }
 
     </style>
@@ -561,15 +563,31 @@
         </div>
     </nav>
 
+    <section id="home" class="page-section active">
+        <div class="hero">
+            <div class="startup-kicker">
+                <i class="fas fa-microchip"></i>
+                <span>The Future of Embroidered Electronics Starts with SoCl</span>
+            </div>
 
+            <h1>Design complete embroidered electronic systems directly on cloth.</h1>
 
+            <h3>
+                SoCl integrates passive components, electrodes, sensors, conductive traces, and textile circuit layouts
+                into one material-aware design platform for embroidered electronics.
+            </h3>
 
-            <div class="hero-actions">
+            <p>
+                Create embroidered resistors, capacitors, inductors, electrodes, sensors, pads, and conductive routing
+                from electrical requirements and conductive-thread properties. SoCl connects circuit modeling,
+                fabric-compatible geometry generation, stitch-level toolpaths, and DST-ready embroidery workflows
+                to build the next generation of soft electronic systems.
+            </p><div class="hero-actions">
                 <button class="btn-primary" onclick="requireAuth('tool')">
                     <i class="fas fa-drafting-compass" style="margin-right: 5px;"></i> Sign in to access the EDA Tool
                 </button>
                 <button class="btn-secondary" onclick="openSignUpModal()">
-                    <i class="fas fa-user-plus" style="margin-right: 5px;"></i> Create Your SoCl Account
+                    <i class="fas fa-user-plus" style="margin-right: 5px;"></i> Create Account
                 </button>
                 <button class="btn-secondary" onclick="openCompModal()">
                     <i class="fas fa-microchip" style="margin-right: 5px;"></i> Embroidered Component Models
@@ -577,10 +595,10 @@
             </div>
 
             <div class="hero-metrics">
-                <div class="metric-card"><strong>R / C / L</strong><span>embroidered component models</span></div>
-                <div class="metric-card"><strong>DST</strong><span>machine-ready export path</span></div>
-                <div class="metric-card"><strong>Material-aware</strong><span>thread and stitch constraints</span></div>
-                <div class="metric-card"><strong>Prototype-ready</strong><span>smart textile validation</span></div>
+                <div class="metric-card"><strong>R C L</strong><span>Embroidered Components</span></div>
+                <div class="metric-card"><strong>DST</strong><span>Machine Excutable export File</span></div>
+                <div class="metric-card"><strong>Material Selection</strong><span>Thread and stitch constraints</span></div>
+                <div class="metric-card"><strong>Prototype</strong> <span>washable, flexible, and reusable embroidered designs</span> </div>
             </div>
         </div>
 <!-- Embroidered component button and modeling -->
@@ -635,12 +653,12 @@
             <h2><i class="fas fa-play-circle" style="margin-right: 10px; color: var(--brand-accent);"></i> SoCl Technical Preview</h2>
             <p class="section-subtitle">
                 Add your own PNG screenshot here to show the SoCl EDA canvas, generated component geometry,
-                embroidered prototype, or DST output. Replace <strong>socl-eda-preview.png</strong> with your image file.
+                embroidered prototype, or DST output. Replace <strong>images/socl-eda-preview.png</strong> with your image file.
             </p>
             <div class="product-showcase">
                 <div class="screenshot-frame">
                     <div class="screenshot-toolbar"><span></span><span></span><span></span></div>
-                    <img src="socl-eda-preview.png" alt="SoCl EDA tool preview screenshot placeholder">
+                    <img src="images/socl-eda-preview.png" alt="SoCl embroidered electronic circuit fabricated on cloth">
                 </div>
                 <div>
                     <h3 style="color: var(--brand-blue); margin-top: 0;">A technical design environment for embroidered circuit fabrication</h3>
@@ -732,7 +750,7 @@
                     </p>
                 </div>
                 <div class="early-access-actions">
-                    <button class="btn-primary" onclick="openSignUpModal()"><i class="fas fa-user-plus" style="margin-right: 6px;"></i> Join Early Access</button>
+                    <button class="btn-primary" onclick="openSignUpModal()"><i class="fas fa-user-plus" style="margin-right: 6px;"></i> Create Account</button>
                     <button class="outline-light-btn" onclick="switchTab('contact')"><i class="fas fa-envelope" style="margin-right: 6px;"></i> Contact Team</button>
                 </div>
             </div>
@@ -1021,7 +1039,7 @@
     <div class="modal-overlay" id="signupModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeSignUpModal()">&times;</button>
-            <h2 class="modal-title"><i class="fas fa-user-plus" style="margin-right: 10px;"></i>Create Account</h2>
+            <h2 class="modal-title"><i class="fas fa-user-plus" style="margin-right: 10px;"></i>Create Your SoCl Account</h2>
             <form id="signupForm" onsubmit="handleSignUp(event)">
                 <div class="form-group">
                     <label>Full Name</label>
@@ -1035,7 +1053,7 @@
                     <label>Password</label>
                     <input type="password" required placeholder="••••••••">
                 </div>
-                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Register</button>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Create Account</button>
             </form>
         </div>
     </div>
