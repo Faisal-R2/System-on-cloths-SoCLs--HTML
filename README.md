@@ -9,6 +9,10 @@ SOCL
 4. cd E:\SOCL_HTML\EmbroideryPCB
 5. python app.py
 
+Addmin 
+Username: admin
+Password: w1wUVA
+
 # Webpage : 
 
 <img width="1895" height="1020" alt="image" src="https://github.com/user-attachments/assets/5b5c3d20-e594-4629-ae02-6b4e238053ed" />
