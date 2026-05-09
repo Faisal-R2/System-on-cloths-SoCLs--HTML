@@ -570,7 +570,7 @@
                 <span>The Future of Embroidered Electronics Starts with SoCl</span>
             </div>
 
-            <h1>Design complete embroidered electronic systems directly on cloth.</h1>
+            <h1> Deisgned and Fabrication Embroidered Electronic Systems Directly on Cloth.</h1>
 
             <h3>
                 SoCl integrates passive components, electrodes, sensors, conductive traces, and textile circuit layouts
@@ -593,14 +593,10 @@
                     <i class="fas fa-microchip" style="margin-right: 5px;"></i> Embroidered Component Models
                 </button>
             </div>
+			
+         <div class="hero-metrics" style="margin-top: 35px; margin-bottom: 35px;">
 
-            <div class="hero-metrics">
-                <div class="metric-card"><strong>R C L</strong><span>Embroidered Components</span></div>
-                <div class="metric-card"><strong>DST</strong><span>Machine Excutable export File</span></div>
-                <div class="metric-card"><strong>Material Selection</strong><span>Thread and stitch constraints</span></div>
-                <div class="metric-card"><strong>Prototype</strong> <span>washable, flexible, and reusable embroidered designs</span> </div>
-            </div>
-        </div>
+          </div>
 <!-- Embroidered component button and modeling -->
         <div class="research-grid">
             <div class="research-card" style="display: flex; flex-direction: column;">
@@ -652,18 +648,17 @@
         <div class="startup-section">
             <h2><i class="fas fa-play-circle" style="margin-right: 10px; color: var(--brand-accent);"></i> SoCl Technical Preview</h2>
             <p class="section-subtitle">
-                Add your own PNG screenshot here to show the SoCl EDA canvas, generated component geometry,
-                embroidered prototype, or DST output. Replace <strong>images/socl-eda-preview.png</strong> with your image file.
+                Add your own PNG screenshot here to show the SoCl EDA canvas
             </p>
             <div class="product-showcase">
                 <div class="screenshot-frame">
                     <div class="screenshot-toolbar"><span></span><span></span><span></span></div>
-                    <img src="images/socl-eda-preview.png" alt="SoCl embroidered electronic circuit fabricated on cloth">
+                    <img src="socl-eda-preview.png" alt="SoCl embroidered electronic circuit fabricated on cloth">
                 </div>
                 <div>
                     <h3 style="color: var(--brand-blue); margin-top: 0;">A technical design environment for embroidered circuit fabrication</h3>
                     <div class="feature-list">
-                        <div><i class="fas fa-check-circle"></i><span>Place embroidered resistors, capacitors, inductors, pads, DIP footprints, and surface-mount packages.</span></div>
+                        <div><i class="fas fa-check-circle"></i><span>Place embroidered resistors, capacitors, inductors,DIP footprints, and surface-mount packages.</span></div>
                         <div><i class="fas fa-check-circle"></i><span>Route conductive textile traces on a selectable millimeter grid with orthogonal routing.</span></div>
                         <div><i class="fas fa-check-circle"></i><span>Export saved layouts and send geometry toward embroidery-machine DST workflows.</span></div>
                         <div><i class="fas fa-check-circle"></i><span>Use material parameters to connect electrical targets with stitchable, manufacturable geometry.</span></div>
@@ -728,7 +723,7 @@
         </div>
 
         <div class="startup-section">
-            <h2><i class="fas fa-shield-alt" style="margin-right: 10px; color: var(--brand-accent);"></i> Validation & Trust</h2>
+            <h2><i class="fas fa-shield-alt" style="margin-right: 10px; color: var(--brand-accent);"></i>Our Contribution & Research Trust</h2>
             <p class="section-subtitle">
                 Connect the SoCl engineering workflow with research validation, textile fabrication, and smart-garment applications.
             </p>
