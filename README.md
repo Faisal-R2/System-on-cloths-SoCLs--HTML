@@ -14,5 +14,6 @@ Username: admin
 Password: w1wUVA
 
 # Webpage : 
+http://joshvarga.com/
 
-<img width="1895" height="1020" alt="image" src="https://github.com/user-attachments/assets/5b5c3d20-e594-4629-ae02-6b4e238053ed" />
+<img width="1281" height="897" alt="SOCL-2-EDa" src="https://github.com/user-attachments/assets/1f42a5de-6d3e-4732-a67c-fe585a5e05e7" />
