@@ -1,15 +1,129 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 import pyembroidery
 import io
 import math
 import numpy as np
 import cv2  # OpenCV for the Image-to-DST converter
+import sqlite3
+import json
+import datetime
 
 app = Flask(__name__)
 CORS(app) 
 
-# --- Exact constants ported from your pCB_Final_Version.py ---
+# -------------------------------------------------------------------------
+# DATABASE SETUP & INITIALIZATION
+# -------------------------------------------------------------------------
+DB_FILE = 'wearlab.db'
+
+def init_db():
+    """Creates the secure database and tables if they don't exist yet."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    
+    # Table for Users (Passwords are hashed, never plain text)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            full_name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Master Table for tracking tool usage (Flexible JSON payload)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS event_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            event_type TEXT NOT NULL,
+            event_data TEXT,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+# Initialize the database when the server starts
+init_db()
+
+# -------------------------------------------------------------------------
+# AUTHENTICATION & TRACKING API ENDPOINTS
+# -------------------------------------------------------------------------
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    name = data.get('fullName')
+    email = data.get('email').lower() 
+    password = data.get('password')
+    
+    if not name or not email or not password:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
+    
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)", 
+                       (name, email, hashed_pw))
+        conn.commit()
+        return jsonify({"message": "User created successfully"}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "Email is already registered"}), 409
+    finally:
+        conn.close()
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data.get('email').lower()
+    password = data.get('password')
+    
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, full_name, password_hash FROM users WHERE email = ?", (email,))
+    user = cursor.fetchone()
+    conn.close()
+    
+    if user and check_password_hash(user[2], password):
+        return jsonify({
+            "message": "Login successful",
+            "user": {"id": user[0], "name": user[1], "email": email}
+        }), 200
+    else:
+        return jsonify({"error": "Invalid email or password"}), 401
+
+@app.route('/track-event', methods=['POST'])
+def track_event():
+    data = request.json
+    user_id = data.get('userId')
+    event_type = data.get('eventType')
+    event_data = json.dumps(data.get('eventData', {})) 
+    
+    if user_id and event_type:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO event_logs (user_id, event_type, event_data) 
+            VALUES (?, ?, ?)
+        ''', (user_id, event_type, event_data))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "logged"}), 200
+        
+    return jsonify({"error": "Missing user or event type"}), 400
+
+
+# -------------------------------------------------------------------------
+# EXACT EMBROIDERY CONSTANTS & FUNCTIONS (From Original Code)
+# -------------------------------------------------------------------------
 TRACE_STITCH_LENGTH_MM = 1.25
 PAD_STITCH_LENGTH_MM = 0.75
 

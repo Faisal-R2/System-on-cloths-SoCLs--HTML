@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jumper-Ready Planar Inductor</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .panel {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 380px;
+            height: fit-content;
+        }
+        h2 {
+            margin-top: 0;
+            color: #0d6efd;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #0d6efd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .fixed-params {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+        .fixed-params span {
+            font-weight: bold;
+            color: #2c3e50;
+            float: right;
+        }
+        .results {
+            margin-top: 20px;
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #0d6efd;
+        }
+        .results p {
+            margin: 8px 0;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .results span {
+            font-weight: bold;
+            color: #111;
+        }
+        .inductance-highlight {
+            font-size: 1.15rem !important;
+            color: #0d6efd !important;
+            border-bottom: 1px dashed #0d6efd;
+            padding-bottom: 8px;
+            margin-bottom: 12px !important;
+        }
+        .canvas-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        canvas {
+            border: 1px solid #ddd;
+            background-image: 
+                linear-gradient(to right, #f8f8f8 1px, transparent 1px),
+                linear-gradient(to bottom, #f8f8f8 1px, transparent 1px);
+            background-size: 20px 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="panel">
+        <h2>RF Planar Inductor</h2>
+        <div style="background: #0d6efd; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; display: inline-block;">Jumper-Wire Ready Layout</div>
+        
+        <div class="form-group">
+            <label for="turns">Number of Turns (n)</label>
+            <input type="number" id="turns" value="5" min="1" step="1">
+        </div>
+
+        <div class="fixed-params">
+            <strong>Locked Material Constraints:</strong><br><br>
+            Thread Diameter: <span>0.20 mm</span><br>
+            Trace Spacing: <span>0.60 mm</span><br>
+            Center Pad Size: <span>1.50 mm</span><br>
+            Resistivity: <span>16 Ω/ft</span>
+        </div>
+
+        <div class="results" id="results-panel">
+            <p class="inductance-highlight">Inductance:<br><span id="res-inductance">0 nH</span></p>
+            <p style="color: #6c757d; font-size: 0.85rem; margin-top: -5px; padding-bottom: 10px; border-bottom: 1px solid #dee2e6;">Equivalent to: <span id="res-inductance-uh" style="font-weight:normal; float:right;">0 µH</span></p>
+            
+            <p style="margin-top: 15px;">Generated Outer Dim: <span id="res-outer">0 mm</span></p>
+            <p>Total Thread Length: <span id="res-length">0 mm</span></p>
+            <p>DC Series Resistance: <span id="res-resistance">0 Ω</span></p>
+        </div>
+    </div>
+
+    <div class="canvas-wrapper">
+        <canvas id="pcbCanvas" width="600" height="600"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pcbCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Fixed physical constants
+        const w = 0.20;             // Thread diameter (mm)
+        const s = 0.60;             // Spacing (mm)
+        const center_pad = 1.5;     // Size of the center anchor pad
+        const d_in = center_pad + (2 * s); // Inner clearance must fit the pad and its spacing
+        const res_per_ft = 16.0;    // Ohms per foot
+        const res_per_m = res_per_ft * 3.28084; // ~52.49 Ohms/meter
+
+        document.getElementById('turns').addEventListener('input', updateModel);
+
+        function updateModel() {
+            let n = parseFloat(document.getElementById('turns').value);
+            if (isNaN(n) || n < 1) n = 1;
+
+            // 1. Calculate Geometry
+            const side_traces_width = (n * w) + ((n - 1) * s);
+            const d_out = d_in + (2 * side_traces_width);
+
+            // 2. Calculate True Inductance (Modified Wheeler Formula)
+            const d_avg = (d_out + d_in) / 2;
+            const rho = (d_out - d_in) / (d_out + d_in);
+            const mu0 = 4 * Math.PI * 1e-7;
+            const L_henries = (2.34 * mu0 * Math.pow(n, 2) * (d_avg * 1e-3)) / (1 + 2.75 * rho);
+            
+            const L_uH = L_henries * 1e6;     // Microhenries
+            const L_nH = L_henries * 1e9;     // Nanohenries for RF
+
+            // 3. Calculate Thread Length
+            const pitch = w + s;
+            let current_side = d_out;
+            let total_len = 0;
+            
+            // Length of spiral
+            for (let i = 0; i < n * 4; i++) {
+                if (i > 0 && i % 2 === 0) current_side -= pitch;
+                total_len += current_side;
+            }
+            
+            // Add external routing length from Pad 1 to start of spiral
+            total_len += (d_out / 2); 
+            
+            const resistance = (total_len / 1000) * res_per_m;
+
+            // 4. Update DOM
+            document.getElementById('res-inductance').innerText = L_nH.toFixed(1) + " nH";
+            document.getElementById('res-inductance-uh').innerText = L_uH.toFixed(4) + " µH";
+            document.getElementById('res-outer').innerText = d_out.toFixed(2) + " mm";
+            document.getElementById('res-length').innerText = total_len.toFixed(2) + " mm";
+            document.getElementById('res-resistance').innerText = resistance.toFixed(2) + " Ω";
+
+            // 5. Draw Layout
+            drawLayout(n, w, s, d_out);
+        }
+
+        function drawLayout(n, w, s, d_out) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // True 1210 Pad Footprint Specs (in mm)
+            const pad_w = 2.54; 
+            const pad_h = 1.14; 
+            const pad_gap = 2.03; 
+            const pad_clearance = 2.0; 
+
+            // Scale mapping
+            const required_space = d_out + pad_h + pad_clearance;
+            const scale = (canvas.height * 0.70) / required_space;
+
+            const cx = canvas.width / 2;
+            const cy = (canvas.height / 2) - ((pad_h * scale) / 2);
+
+            const px_w = w * scale;
+            const px_s = s * scale;
+            const startL = d_out * scale;
+            const pitch = px_w + px_s; 
+
+            // --- Drawing Phase ---
+            // Set styles for a Rounded Square look
+            ctx.strokeStyle = '#0d6efd'; 
+            ctx.lineWidth = px_w;
+            ctx.lineJoin = 'round'; 
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            
+            // 1210 Pad Positions (Outside)
+            const padY = cy + (startL/2) + (pad_clearance * scale);
+            const pad1X = cx - (pad_gap/2 * scale) - (pad_w * scale);
+            const pad2X = cx + (pad_gap/2 * scale);
+            
+            const pad1_center_x = pad1X + (pad_w * scale / 2);
+            const pad2_center_x = pad2X + (pad_w * scale / 2);
+
+            let x = cx - startL/2;
+            let y = cy + startL/2;
+
+            // Route from Pad 1 up to Bottom-Left corner of spiral
+            const safe_route_y = cy + (startL/2) + (pad_clearance * scale * 0.5);
+            ctx.moveTo(pad1_center_x, padY);
+            ctx.lineTo(pad1_center_x, safe_route_y);
+            ctx.lineTo(x, safe_route_y);
+            ctx.lineTo(x, y);
+
+            // --- Draw Standard Spiral (Inward) ---
+            let current_L = startL;
+            let dir = 0; 
+            
+            for (let i = 0; i < n * 4; i++) {
+                if (i > 0 && i % 2 === 0) current_L -= pitch;
+                
+                if (dir === 0) y -= current_L;
+                else if (dir === 1) x += current_L;
+                else if (dir === 2) y += current_L;
+                else if (dir === 3) x -= current_L;
+                
+                ctx.lineTo(x, y);
+                dir = (dir + 1) % 4;
+            }
+            
+            // Connect final inner loop directly to the dead center pad
+            ctx.lineTo(cx, cy);
+            ctx.stroke();
+
+            // --- Draw All Pads ---
+            ctx.fillStyle = '#0d6efd';
+            
+            // Pad 1 (Outside, connected)
+            ctx.fillRect(pad1X, padY, pad_w * scale, pad_h * scale);
+            
+            // Pad 2 (Outside, isolated, waiting for jumper)
+            ctx.fillRect(pad2X, padY, pad_w * scale, pad_h * scale);
+
+            // Center Solder Pad
+            const center_px = center_pad * scale;
+            ctx.fillRect(cx - (center_px / 2), cy - (center_px / 2), center_px, center_px);
+
+            // --- Labels ---
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            
+            ctx.fillText("Pad 1", pad1_center_x, padY + (pad_h * scale) + 20);
+            ctx.fillText("Pad 2", pad2_center_x, padY + (pad_h * scale) + 20);
+            
+            // Tiny label for the center pad
+            ctx.font = 'normal 10px sans-serif';
+            ctx.fillText("Center Pad", cx, cy + (center_px / 2) + 12);
+            
+            ctx.font = 'normal 12px sans-serif';
+            ctx.fillStyle = '#666';
+            ctx.fillText("1210 Footprint", cx, padY + (pad_h * scale) + 40);
+        }
+
+        // Init on load
+        window.onload = updateModel;
+    </script>
+</body>
+</html>
