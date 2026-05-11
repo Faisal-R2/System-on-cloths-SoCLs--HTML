@@ -1,4 +1,0 @@
-Flask
-Flask-Cors
-opencv-python-headless
-numpy
