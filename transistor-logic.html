@@ -1,0 +1,3705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Embroidered Transistor Logic Geometry Editor</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:linear-gradient(135deg, #ff8a00 0%, #f28c18 34%, #0b2a55 100%);
+  color:#102033;
+}
+
+  #main {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  #topbar {
+    flex: 0 0 auto;
+    background: #1c1c24;
+    border-bottom: 2px solid #333340;
+    padding: 6px 8px 7px;
+  }
+
+  .appTitle {
+    margin: 0 0 7px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #4ecca3;
+    line-height: 1.15;
+    text-align: center;
+    width: 100%;
+    letter-spacing: 0.2px;
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding-right: 7px;
+    margin-right: 2px;
+    border-right: 1px solid #3a3a48;
+  }
+
+  .group:last-child {
+    border-right: none;
+  }
+
+  button {
+    min-width: 104px;
+    padding: 6px 8px;
+    border: 1px solid #464656;
+    border-radius: 6px;
+    background: #2d2d38;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  button:hover { background: #3b3b49; }
+  button.active { background: #4ecca3; color: #000; border-color: #4ecca3; }
+  button.danger { border-left: 4px solid #e94560; }
+
+  select.activeSelect {
+    background: #4ecca3;
+    color: #000;
+    border-color: #4ecca3;
+    font-weight: 800;
+  }
+
+  .control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #d8d8e8;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .control input,
+  .control select {
+    width: 74px;
+    padding: 7px;
+    border-radius: 6px;
+    border: 1px solid #464656;
+    background: #111118;
+    color: #fff;
+  }
+
+  #workspace {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    position: relative;
+  }
+
+  #footer {
+    flex: 0 0 auto;
+    height: 24px;
+    background: #1c1c24;
+    border-top: 1px solid #333340;
+    color: #cfcfde;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.25px;
+  }
+
+  #footer strong {
+    color: #4ecca3;
+  }
+
+  #canvasWrap {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: hidden;
+    background: #ffffff;
+    padding: 0;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    box-shadow: none;
+    cursor: crosshair;
+  }
+
+/* Orange / dark-blue interface theme */
+h1 {
+  font-size:42px !important;
+  line-height:1.12;
+  color:#ff8a00 !important;
+  text-shadow:0 3px 0 rgba(0,0,0,0.22);
+  letter-spacing:0.3px;
+}
+
+header, .header, .top, .topbar, .toolbar, #toolbar {
+  background:#08264d !important;
+  color:white !important;
+}
+
+button, select, input[type="button"] {
+  background:#08264d !important;
+  color:white !important;
+  border:1px solid #16477f !important;
+  border-radius:8px !important;
+  box-shadow:0 2px 0 rgba(0,0,0,0.18);
+}
+
+button:hover, select:hover, input[type="button"]:hover {
+  background:#0f3b76 !important;
+}
+
+button.active, .active {
+  background:#ff8a00 !important;
+  color:#08264d !important;
+  border-color:#ffb347 !important;
+}
+
+canvas {
+  border:3px solid #08264d !important;
+  box-shadow:0 8px 26px rgba(0,0,0,0.22);
+}
+
+
+/* Final title/topbar polish */
+#topbar {
+  background:#08264d !important;
+  border-bottom:3px solid #ff8a00 !important;
+}
+
+.appTitle {
+  font-size:34px !important;
+  color:#ff8a00 !important;
+  text-shadow:0 3px 0 rgba(0,0,0,0.25);
+  letter-spacing:0.4px;
+  padding:6px 0 4px;
+}
+
+#footer {
+  background:#08264d !important;
+  border-top:2px solid #ff8a00 !important;
+  color:white !important;
+}
+
+#footer strong {
+  color:#ff8a00 !important;
+}
+
+
+.mouseZoomNote {
+  color:#ff8a00 !important;
+  padding:7px 4px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+
+
+
+</style>
+</head>
+<body>
+
+<main id="main">
+  <div id="topbar">
+    <div class="appTitle">Embroidered Transistor and Logic Gates for Integrated Circuits</div>
+
+    <div class="toolbar">
+      <div class="group">
+        <button id="btn-transistor" class="active" onclick="setTool('transistor')">Embroidered Transistor</button>
+        <label class="control"> Logic Gates
+          <select id="logicGateType" onfocus="setTool('logic')" onclick="setTool('logic')" onchange="setTool('logic')">
+            <option value="and" selected>AND</option>
+            <option value="or">OR</option>
+            <option value="not">NOT</option>
+          </select>
+        </label>
+        <button id="btn-res1210" onclick="setTool('res1210')">R-1210</button>
+        <button id="btn-extpad" onclick="setTool('extpad')">Pads</button>
+</div>
+
+      <div class="group">
+        <button id="btn-route" onclick="setTool('route')">Routing Wire</button>
+        <button id="btn-select" onclick="setTool('select')">Select / Move</button>
+        <button id="btn-rotate" onclick="rotateSelected()" title="Rotate the selected design 90 degrees clockwise">Rotate 90°</button>
+      </div>
+
+      <div class="group">
+        <button onclick="duplicateSelected()">Copy</button>
+<button class="danger" onclick="deleteSelected()">Delete</button>
+        <button class="danger" onclick="clearAll()">Clear All</button>
+      </div>
+
+      <div class="group">
+        <button onclick="checkSelectedLogic()">Check Logic</button>
+        <button onclick="toggleElectricalLabels()">Electrical Labels</button>
+      </div>
+
+      <div class="group">
+        <button onclick="toggleStitchPreview()">Stitch Preview</button>
+        <button onclick="showStitchStats()">Stitch Stats</button>
+        <button onclick="saveProjectFile()">Save Project</button>
+        <button onclick="openProjectFile()">Open Project</button>
+        <button onclick="exportDST()">Data Stitch Tajima(Export)</button>
+      </div>
+
+      <div class="group">
+        <label class="control">Grid
+          <input id="gridSpacingMm" type="number" min="0.5" max="20" step="0.5" value="2" onchange="draw()">
+        </label>
+<button onclick="resetCanvasZoom()">Reset Zoom</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="workspace">
+    <div id="canvasWrap">
+      <input id="projectFileInput" type="file" accept=".json,.txt,.etl,.etlogic,application/json,text/plain" style="display:none" onchange="handleProjectFileOpen(event)">
+      <canvas id="canvas" width="1400" height="900" tabindex="1" title="Drag a selected design to move it. Double-click it to rotate 90°. Mouse wheel zooms in/out."></canvas>
+    </div>
+  </div>
+
+  <div id="footer">
+    © <strong>Wearable Lab</strong> — Emitter-output C/B/E convention • Inputs −0.10 V / +1.00 V • Validate measured resistance polarity
+  </div>
+</main>
+
+
+<script>
+// Geometry revision: AND and OR matched to user-approved reference models.
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let canvasZoom = 1;
+
+function clampCanvasZoom(z) {
+  if (!isFinite(z)) z = 1;
+  return Math.max(0.25, Math.min(3.0, z));
+}
+
+function updateCanvasZoom() {
+  canvasZoom = clampCanvasZoom(canvasZoom);
+
+  // Use CSS sizing for visual zoom while keeping true design coordinates unchanged.
+  canvas.style.width = Math.round(canvas.width * canvasZoom) + "px";
+  canvas.style.height = Math.round(canvas.height * canvasZoom) + "px";
+
+  const el = document.getElementById("zoomPercent");
+  if (el) el.value = Math.round(canvasZoom * 100);
+}
+
+function setCanvasZoom(z) {
+  canvasZoom = clampCanvasZoom(z);
+  updateCanvasZoom();
+  draw();
+}
+
+function zoomCanvasByFactor(factor, anchorEvent=null) {
+  const wrap = document.getElementById("canvasWrap");
+  const oldZoom = canvasZoom;
+
+  let anchorWorld = null;
+  let anchorScreen = null;
+
+  if (anchorEvent && wrap) {
+    anchorWorld = canvasPointFromEvent(anchorEvent);
+    const wr = wrap.getBoundingClientRect();
+    anchorScreen = {
+      x: anchorEvent.clientX - wr.left,
+      y: anchorEvent.clientY - wr.top
+    };
+  }
+
+  canvasZoom = clampCanvasZoom(canvasZoom * factor);
+  updateCanvasZoom();
+
+  // Keep the mouse point stable while zooming.
+  if (anchorWorld && anchorScreen && wrap) {
+    wrap.scrollLeft = anchorWorld.x * canvasZoom - anchorScreen.x;
+    wrap.scrollTop = anchorWorld.y * canvasZoom - anchorScreen.y;
+  }
+
+  if (oldZoom !== canvasZoom) draw();
+}
+
+function resetCanvasZoom() {
+  canvasZoom = 1;
+  updateCanvasZoom();
+  const wrap = document.getElementById("canvasWrap");
+  if (wrap) {
+    wrap.scrollLeft = 0;
+    wrap.scrollTop = 0;
+  }
+  draw();
+}
+
+function canvasPointFromEvent(e) {
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - r.left) * (canvas.width / r.width),
+    y: (e.clientY - r.top) * (canvas.height / r.height)
+  };
+}
+
+
+
+function resizeCanvasToWindow() {
+  const wrap = document.getElementById("canvasWrap");
+  const rect = wrap.getBoundingClientRect();
+
+  // Preserve existing drawing coordinates; only expand the usable edit area.
+  const oldW = canvas.width;
+  const oldH = canvas.height;
+  const newW = Math.max(1000, Math.floor(rect.width));
+  const newH = Math.max(650, Math.floor(rect.height));
+
+  if (oldW !== newW || oldH !== newH) {
+    canvas.width = newW;
+    canvas.height = newH;
+    if (typeof updateCanvasZoom === "function") updateCanvasZoom();
+    draw();
+  }
+}
+
+window.addEventListener("resize", resizeCanvasToWindow);
+
+const MM = 8;
+const INPUT_LOGIC_0_V = -0.10;
+const INPUT_LOGIC_1_V = 1.00;
+const REPORTED_OUTPUT_TERMINAL = "E";
+// Circuit-library rule:
+// The drawn NOT/AND/OR topologies are the corrected reference circuits
+// for devices where logical HIGH produces a lower channel resistance (HIGH→ON).
+// The Logic Check uses measured R(input=0) and R(input=1) and will report when a
+// depletion-mode HIGH→OFF textile OECT does not realize the label with this topology.
+const TERMINAL_MM = 8.0; // emitter, collector, and base terminal length for single embroidered transistor and all logic gates
+const TERMINAL = TERMINAL_MM * MM;
+
+// Compact 8 mm base terminals: this clearance is only the small gap between the
+// PEDOT:PSS collector-emitter channel and the beginning of the embroidered base trace.
+const GATE_CHANNEL_CLEARANCE_MM = 0.75;
+const GATE_CHANNEL_CLEARANCE = GATE_CHANNEL_CLEARANCE_MM * MM;
+
+// Parallel OR branch/channel center-to-center spacing.
+// Requested spacing: 10 mm between the two embroidered transistor branches.
+const PARALLEL_GATE_SPACING_MM = 10.0;
+const PARALLEL_GATE_SPACING = PARALLEL_GATE_SPACING_MM * MM;
+
+// Series gates also keep a true 10 mm open connection distance between
+// the collector terminal of the lower transistor and the emitter terminal of the upper transistor.
+// This prevents the two 8 mm terminals from overlapping.
+const SERIES_BRANCH_GAP_MM = 10.0;
+const SERIES_BRANCH_GAP = SERIES_BRANCH_GAP_MM * MM;
+
+const VOUT_MM = 25;
+const VOUT = VOUT_MM * MM;
+
+// Collector-emitter PEDOT:PSS channel length/gap.
+const CHANNEL_GAP_MM = 0.65; // fixed 0.65 mm / 650 µm collector-emitter channel gap for the single transistor and every logic-gate transistor
+const CHANNEL_GAP = CHANNEL_GAP_MM * MM;
+
+const STITCH_MM = 0.75;
+const PAD_FILL_SPACING_MM = 0.75;
+const PAD_FILL_SPACING = PAD_FILL_SPACING_MM * MM;
+const BOUNDARY_INSET_MM = 4;
+const BOUNDARY_INSET = BOUNDARY_INSET_MM * MM;
+
+// Standard 1210 / 3225 metric resistor.
+// True package body: 3.20 mm × 2.50 mm.
+// User-enlarged embroidery pad geometry:
+// - keeps the package reference as 1210 / 3225 metric
+// - large stitched pads for easier embroidery and attachment
+// - 4.00 mm × 4.00 mm stitched pads
+// - fixed 3.00 mm inner gap between pads
+const RES1210_BODY_L_MM = 3.20;
+const RES1210_BODY_W_MM = 2.50;
+const RES1210_PAD_W_MM = 4.00;       // pad width across the resistor body
+const RES1210_PAD_H_MM = 4.00;       // pad length along current path
+const RES1210_PAD_INNER_GAP_MM = 3.00;
+const RES1210_PAD_CENTER_SPACING_MM = RES1210_PAD_H_MM + RES1210_PAD_INNER_GAP_MM;
+const RES1210_PAD_OUTSIDE_SPAN_MM = RES1210_PAD_CENTER_SPACING_MM + RES1210_PAD_H_MM;
+const RES1210_PAD_W = RES1210_PAD_W_MM * MM;
+const RES1210_PAD_H = RES1210_PAD_H_MM * MM;
+const RES1210_PAD_SPACING = RES1210_PAD_CENTER_SPACING_MM * MM;
+
+const EXTPAD_W_MM = 6.0;
+const EXTPAD_H_MM = 6.0;
+const EXTPAD_W = EXTPAD_W_MM * MM;
+const EXTPAD_H = EXTPAD_H_MM * MM;
+
+// Fixed complete-gate layout parameters.
+// These keep pads connected and locked inside AND/OR gate blocks.
+const EXTPAD_OFFSET_MM = 10.0;
+const EXTPAD_OFFSET = EXTPAD_OFFSET_MM * MM;
+const LOAD_TOP_PAD_OFFSET_MM = 7.0;
+const LOAD_TOP_PAD_OFFSET = LOAD_TOP_PAD_OFFSET_MM * MM;
+const LOAD_GND_OFFSET_MM = 28.0;
+const LOAD_GND_OFFSET = LOAD_GND_OFFSET_MM * MM;
+
+const SD = "#f2a900";
+const BASE_A = "#4aa3ff";
+const BASE_B = "#b26cff";
+const CHANNEL = "rgba(78,204,163,0.62)";
+const ACTIVE = "#00ff99";
+const BUS = "#5f5f5f";
+const OFF = "#777777";
+const ROUTE = "#333333";
+const ROUTE_SELECTED = "#0066ff";
+const PACKAGE = "#333333";
+const PAD = "#050608";
+const PIN = "#555555";
+
+let tool = "transistor";
+let items = [];
+let routes = [];
+let selected = null; // {kind:'item'|'route', id:number}
+let dragging = null;
+let dragOffset = {x:0, y:0};
+let mouse = {x:0, y:0};
+let nextId = 1;
+let nextRouteId = 1;
+let liveInputs = {A:0, B:0};
+let hoverPin = null;
+let routeStart = null;
+let history = [];
+let historyIndex = -1;
+let isRestoringHistory = false;
+let showStitchPreviewFlag = false;
+let showElectricalLabelsFlag = true;
+
+const itemInfo = {
+  transistor: {
+    title: "Embroidered Transistor",
+    truth: null,
+    inputs: [],
+    logic:
+`One embroidered transistor cell.
+
+It has a left C terminal, a right E terminal, a B/G control terminal, and a PEDOT:PSS C–E channel opening. E is the reported output terminal.
+
+Characterize B/G from −0.10 V to +1.00 V before building AND or OR.`,
+    fabrication:
+`If this single cell does not switch, the gates will not work.
+
+Keep PEDOT:PSS confined in the channel gap.`
+  },
+  and: {
+    title: "AND Gate",
+    truth: [["A","B","Y"],[0,0,0],[0,1,0],[1,0,0],[1,1,1]],
+    inputs: ["A","B"],
+    logic:
+`AND reference circuit for a HIGH→ON transistor.
+
+Two transistors form a series pull-up path:
+VCC → C(A)–E(A) → C(B)–E(B)=OUT.
+A physical R-1210 resistor pulls OUT to GND.
+
+Physical input 0 is −0.10 V and input 1 is +1.00 V. E(B) is OUT.
+The AND target is valid only when +1.00 V produces the lower channel resistance.
+Y = A AND B target.`,
+    fabrication:
+`The transistor positions are unchanged. Each PEDOT:PSS C–E opening is 0.65 mm, and each B/G-to-channel clearance is 0.75 mm.
+
+Keep the two PEDOT:PSS windows and the two ionic-gel gate regions separated. The resistor is below the output and must not be bypassed by conductive stitching.`
+  },
+  or: {
+    title: "OR Gate",
+    truth: [["A","B","Y"],[0,0,0],[0,1,1],[1,0,1],[1,1,1]],
+    inputs: ["A","B"],
+    logic:
+`OR reference circuit for a HIGH→ON transistor.
+
+Two transistors form parallel pull-up paths:
+VCC → C(A)–E(A)=OUT, and VCC → C(B)–E(B)=OUT.
+A physical R-1210 resistor pulls OUT to GND.
+
+Physical input 0 is −0.10 V and input 1 is +1.00 V. The common E bus is OUT.
+The OR target is valid only when +1.00 V produces the lower channel resistance.
+Y = A OR B target.`,
+    fabrication:
+`Keep the upper and lower PEDOT:PSS windows, electrolyte regions, and gate terminals independent. Merge only at the stitched VCC and OUT buses.`
+  },
+  not: {
+    title: "NOT Gate",
+    truth: [["A","Y"],[0,1],[1,0]],
+    inputs: ["A"],
+    logic:
+`NOT reference circuit for a HIGH→ON transistor.
+
+A physical R-1210 resistor pulls OUT to VCC.
+C is connected to GND and E is OUT. Physical input 0 is −0.10 V and input 1 is +1.00 V.
+The NOT target is valid only when +1.00 V produces the lower channel resistance.
+
+A = 0 targets Y = 1.
+A = 1 targets Y = 0.`,
+    fabrication:
+`Keep PEDOT:PSS confined to the C–E channel opening. The B/G electrode is electronically isolated and coupled only through the ionic gel.`
+  },
+  res1210: {
+    title: "Extra 1210 SMD Pads",
+    truth: null,
+    inputs: [],
+    logic:
+`Standalone extra 1210 resistor pad pair.
+
+Use this when you need an additional external resistor footprint outside the fixed embroidered logic-gate blocks.
+
+The two pads are separate. Do not stitch between them; the physical 1210 resistor bridges the gap.`,
+    fabrication:
+`Large embroidery pads:
+- pad width: 4.00 mm
+- pad length: 4.00 mm
+- inner gap: 3.00 mm
+
+These are intentionally larger than a compact PCB land pattern.`
+  },
+  extpad: {
+    title: "Extra External Connection Pad",
+    truth: null,
+    inputs: [],
+    logic:
+`Standalone external connection pad.
+
+Use it as VCC, GND/reference, input, output, probe, snap, or measurement pad.`,
+    fabrication:
+`Default size: 6 mm × 6 mm.
+
+DST export fills this pad with cross-mesh running stitches.`
+  }
+};
+
+function snapshotState() {
+  return JSON.stringify({
+    items,
+    routes,
+    nextId,
+    nextRouteId
+  });
+}
+
+function restoreState(serialized) {
+  isRestoringHistory = true;
+  const state = JSON.parse(serialized);
+  const allowedItemTypes = new Set(["transistor", "and", "or", "not", "res1210", "extpad"]);
+  items = (state.items || []).filter(item => allowedItemTypes.has(item.type)).map(item => ({...item, rotation: normalizeRotation(item.rotation || 0)}));
+  routes = state.routes || [];
+  nextId = state.nextId || 1;
+  nextRouteId = state.nextRouteId || 1;
+  selected = null;
+  dragging = null;
+  routeStart = null;
+  isRestoringHistory = false;
+  updateInspector();
+  draw();
+}
+
+function pushHistory() {
+  if (isRestoringHistory) return;
+  const snap = snapshotState();
+
+  if (history[historyIndex] === snap) return;
+
+  history = history.slice(0, historyIndex + 1);
+  history.push(snap);
+  historyIndex = history.length - 1;
+
+  // Keep history bounded so the browser stays light.
+  if (history.length > 80) {
+    history.shift();
+    historyIndex--;
+  }
+}
+
+function undo() {
+  if (historyIndex <= 0) return;
+  historyIndex--;
+  restoreState(history[historyIndex]);
+}
+
+function redo() {
+  if (historyIndex >= history.length - 1) return;
+  historyIndex++;
+  restoreState(history[historyIndex]);
+}
+
+function currentLogicGateType() {
+  const el = document.getElementById("logicGateType");
+  return el ? el.value : "and";
+}
+
+function setTool(t) {
+  tool = t;
+  routeStart = null;
+  document.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  const logicSelect = document.getElementById("logicGateType");
+  if (logicSelect) logicSelect.classList.remove("activeSelect");
+
+  const btn = document.getElementById("btn-" + t);
+  if (btn) btn.classList.add("active");
+  if (t === "logic" && logicSelect) logicSelect.classList.add("activeSelect");
+
+  canvas.style.cursor = t === "select" ? "grab" : (t === "route" ? "crosshair" : "copy");
+  draw();
+}
+
+canvas.addEventListener("mousemove", e => {
+  canvas.focus();
+  const p = canvasPointFromEvent(e);
+  mouse.x = p.x;
+  mouse.y = p.y;
+
+  hoverPin = findPin(mouse.x, mouse.y);
+
+  if (dragging) {
+    canvas.style.cursor = "grabbing";
+    dragging.x = Math.round((mouse.x - dragOffset.x) / 10) * 10;
+    dragging.y = Math.round((mouse.y - dragOffset.y) / 10) * 10;
+  }
+
+  draw();
+});
+
+
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  zoomCanvasByFactor(e.deltaY < 0 ? 1.12 : 1/1.12, e);
+}, {passive:false});
+
+canvas.addEventListener("mousedown", e => {
+  canvas.focus();
+  const p = canvasPointFromEvent(e);
+  mouse.x = p.x;
+  mouse.y = p.y;
+  const x = Math.round(mouse.x / 10) * 10;
+  const y = Math.round(mouse.y / 10) * 10;
+
+  if (tool === "route") {
+    handleRoutingClick();
+    return;
+  }
+
+  if (tool === "select") {
+    selected = null;
+
+    const routeHit = findRoute(mouse.x, mouse.y);
+    if (routeHit) {
+      selected = {kind:"route", id:routeHit.id};
+      updateInspector();
+      draw();
+      return;
+    }
+
+    for (let i = items.length - 1; i >= 0; i--) {
+      const b = bounds(items[i]);
+      if (itemContainsPoint(items[i], mouse.x, mouse.y)) {
+        selected = {kind:"item", id:items[i].id};
+        dragging = items[i];
+        dragOffset = {x: mouse.x - items[i].x, y: mouse.y - items[i].y};
+        break;
+      }
+    }
+  } else {
+    const placedType = tool === "logic" ? currentLogicGateType() : tool;
+    if (!itemInfo[placedType]) return;
+    const item = {id: nextId++, type: placedType, x, y, rotation: 0};
+    items.push(item);
+    selected = {kind:"item", id:item.id};
+    pushHistory();
+    setTool("select");
+  }
+
+  resetUnusedInputs();
+  updateInspector();
+  draw();
+});
+
+
+canvas.addEventListener("dblclick", e => {
+  e.preventDefault();
+  canvas.focus();
+  const p = canvasPointFromEvent(e);
+  mouse.x = p.x;
+  mouse.y = p.y;
+
+  for (let i = items.length - 1; i >= 0; i--) {
+    if (itemContainsPoint(items[i], mouse.x, mouse.y)) {
+      selected = {kind:"item", id:items[i].id};
+      dragging = null;
+      rotateSelected();
+      return;
+    }
+  }
+});
+
+canvas.addEventListener("mouseup", () => {
+  if (dragging) pushHistory();
+  dragging = null;
+  if (tool === "select") canvas.style.cursor = "grab";
+});
+
+
+canvas.addEventListener("contextmenu", e => {
+  e.preventDefault();
+  canvas.focus();
+  const p = canvasPointFromEvent(e);
+  mouse.x = p.x;
+  mouse.y = p.y;
+
+  selected = null;
+
+  const routeHit = findRoute(mouse.x, mouse.y);
+  if (routeHit) {
+    selected = {kind:"route", id:routeHit.id};
+    updateInspector();
+    draw();
+    return;
+  }
+
+  for (let i = items.length - 1; i >= 0; i--) {
+    const b = bounds(items[i]);
+    if (itemContainsPoint(items[i], mouse.x, mouse.y)) {
+      selected = {kind:"item", id:items[i].id};
+      updateInspector();
+      draw();
+      return;
+    }
+  }
+
+  updateInspector();
+  draw();
+});
+
+canvas.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    routeStart = null;
+    setTool("select");
+    draw();
+    return;
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+    e.preventDefault();
+    undo();
+    return;
+  }
+
+  if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") ||
+      ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z")) {
+    e.preventDefault();
+    redo();
+    return;
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+    e.preventDefault();
+    duplicateSelected();
+    return;
+  }
+
+  if (!e.ctrlKey && !e.metaKey && e.key.toLowerCase() === "r") {
+    e.preventDefault();
+    rotateSelected();
+    return;
+  }
+
+  if (e.key === "Delete" || e.key === "Backspace") deleteSelected();
+});
+
+function handleRoutingClick() {
+  if (!hoverPin) return;
+
+  if (!routeStart) {
+    routeStart = hoverPin;
+  } else {
+    if (routeStart.itemId === hoverPin.itemId && routeStart.name === hoverPin.name) {
+      routeStart = null;
+      draw();
+      return;
+    }
+
+    routes.push({
+      id: nextRouteId++,
+      start: {itemId: routeStart.itemId, pin: routeStart.name},
+      end: {itemId: hoverPin.itemId, pin: hoverPin.name}
+    });
+
+    selected = {kind:"route", id: nextRouteId - 1};
+    routeStart = null;
+    pushHistory();
+    // Stay in routing mode so the user can keep drawing wires.
+    setTool("route");
+  }
+
+  updateInspector();
+  draw();
+}
+
+function getSelectedItem() {
+  if (!selected || selected.kind !== "item") return null;
+  return items.find(i => i.id === selected.id) || null;
+}
+
+function getSelectedRoute() {
+  if (!selected || selected.kind !== "route") return null;
+  return routes.find(r => r.id === selected.id) || null;
+}
+
+function resetUnusedInputs() {
+  const item = getSelectedItem();
+  if (!item) return;
+  const needed = itemInfo[item.type].inputs;
+  if (!needed.includes("A")) liveInputs.A = 0;
+  if (!needed.includes("B")) liveInputs.B = 0;
+}
+
+function deleteSelected() {
+  if (!selected) return;
+
+  if (selected.kind === "item") {
+    const id = selected.id;
+    items = items.filter(item => item.id !== id);
+    routes = routes.filter(route => route.start.itemId !== id && route.end.itemId !== id);
+  }
+
+  if (selected.kind === "route") {
+    routes = routes.filter(route => route.id !== selected.id);
+  }
+
+  selected = null;
+  routeStart = null;
+  pushHistory();
+  updateInspector();
+  draw();
+}
+
+function duplicateSelected() {
+  if (!selected) return;
+
+  if (selected.kind === "item") {
+    const item = items.find(i => i.id === selected.id);
+    if (!item) return;
+
+    const copy = {
+      ...JSON.parse(JSON.stringify(item)),
+      id: nextId++,
+      x: item.x + 40,
+      y: item.y + 40
+    };
+
+    items.push(copy);
+    selected = {kind:"item", id:copy.id};
+    pushHistory();
+    updateInspector();
+    draw();
+    return;
+  }
+
+  if (selected.kind === "route") {
+    const route = routes.find(r => r.id === selected.id);
+    if (!route) return;
+
+    const copy = {
+      ...JSON.parse(JSON.stringify(route)),
+      id: nextRouteId++
+    };
+
+    routes.push(copy);
+    selected = {kind:"route", id:copy.id};
+    pushHistory();
+    updateInspector();
+    draw();
+  }
+}
+
+
+function clearAll() {
+  if (confirm("Clear all items and routes?")) {
+    items = [];
+    routes = [];
+    selected = null;
+    routeStart = null;
+    pushHistory();
+    updateInspector();
+    draw();
+  }
+}
+
+function showDims() { return false; }
+
+function gateDirectionSetting() { return "up"; }
+
+function unrotatedBounds(item) {
+  if (item.type === "transistor") return {x:item.x-160, y:item.y-130, w:320, h:260};
+  if (item.type === "and") return {x:item.x-410, y:item.y-260, w:850, h:560};
+  if (item.type === "or") return {x:item.x-360, y:item.y-390, w:760, h:780};
+  if (item.type === "not") return {x:item.x-340, y:item.y-330, w:700, h:660};
+if (item.type === "res1210") return {x:item.x-70, y:item.y-85, w:140, h:170};
+  if (item.type === "extpad") return {x:item.x-EXTPAD_W/2-20, y:item.y-EXTPAD_H/2-20, w:EXTPAD_W+40, h:EXTPAD_H+40};
+  return {x:item.x-100, y:item.y-100, w:200, h:200};
+}
+
+
+function normalizeRotation(value) {
+  const n = Number(value) || 0;
+  return ((Math.round(n / 90) * 90) % 360 + 360) % 360;
+}
+
+function itemRotationRadians(item) {
+  return normalizeRotation(item?.rotation || 0) * Math.PI / 180;
+}
+
+function rotatePointAround(point, cx, cy, degrees) {
+  const angle = normalizeRotation(degrees) * Math.PI / 180;
+  if (angle === 0) return {x:point.x, y:point.y};
+  const dx = point.x - cx;
+  const dy = point.y - cy;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return {
+    x: cx + dx * cos - dy * sin,
+    y: cy + dx * sin + dy * cos
+  };
+}
+
+function inverseRotatePointForItem(item, x, y) {
+  return rotatePointAround({x, y}, item.x, item.y, -normalizeRotation(item.rotation || 0));
+}
+
+function bounds(item) {
+  const b = unrotatedBounds(item);
+  const angle = normalizeRotation(item.rotation || 0);
+  if (angle === 0) return b;
+  const corners = [
+    {x:b.x, y:b.y},
+    {x:b.x + b.w, y:b.y},
+    {x:b.x + b.w, y:b.y + b.h},
+    {x:b.x, y:b.y + b.h}
+  ].map(p => rotatePointAround(p, item.x, item.y, angle));
+  const xs = corners.map(p => p.x);
+  const ys = corners.map(p => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  return {x:minX, y:minY, w:maxX-minX, h:maxY-minY};
+}
+
+function itemContainsPoint(item, x, y) {
+  const p = inverseRotatePointForItem(item, x, y);
+  const b = unrotatedBounds(item);
+  return p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h;
+}
+
+function rotateSelected(step=90) {
+  const item = getSelectedItem();
+  if (!item) return;
+  item.rotation = normalizeRotation((item.rotation || 0) + step);
+  routeStart = null;
+  dragging = null;
+  pushHistory();
+  updateInspector();
+  draw();
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawGrid();
+  drawDesignBoundary();
+  items.forEach(drawItem);
+  routes.forEach(drawRoute);
+  drawRoutePreview();
+  drawPins();
+  drawStitchPreview();
+}
+
+function getGridSpacingPx() {
+  const el = document.getElementById("gridSpacingMm");
+  const mm = Math.max(0.5, Math.min(20, parseFloat(el?.value || "2")));
+  return mm * MM;
+}
+
+
+function drawDesignBoundary() {
+  // Visual-only work area boundary: 4 mm inset from the canvas/user window.
+  // This is not exported to DST.
+  const inset = (typeof BOUNDARY_INSET !== "undefined") ? BOUNDARY_INSET : 32;
+  ctx.save();
+  ctx.strokeStyle = "#ff8a00";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([10, 6]);
+  ctx.strokeRect(inset, inset, canvas.width - inset * 2, canvas.height - inset * 2);
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function drawGrid() {
+  const step = getGridSpacingPx();
+
+  // One uniform editor grid only. No second/major grid layer.
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = "#d2d2d2";
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x <= canvas.width; x += step) {
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, 0);
+    ctx.lineTo(x + 0.5, canvas.height);
+    ctx.stroke();
+  }
+
+  for (let y = 0; y <= canvas.height; y += step) {
+    ctx.beginPath();
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(canvas.width, y + 0.5);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "#a0a0a0";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0.5, 0.5, canvas.width - 1, canvas.height - 1);
+}
+
+function drawItem(item) {
+  const angle = itemRotationRadians(item);
+  const localBounds = unrotatedBounds(item);
+
+  if (selected && selected.kind === "item" && selected.id === item.id) {
+    ctx.save();
+    ctx.translate(item.x, item.y);
+    ctx.rotate(angle);
+    ctx.translate(-item.x, -item.y);
+    ctx.fillStyle = "rgba(0,255,255,0.08)";
+    ctx.fillRect(localBounds.x, localBounds.y, localBounds.w, localBounds.h);
+    ctx.strokeStyle = "#00ffff";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(localBounds.x, localBounds.y, localBounds.w, localBounds.h);
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.translate(item.x, item.y);
+  ctx.rotate(angle);
+  ctx.translate(-item.x, -item.y);
+
+  if (item.type === "transistor") drawFullCell(item.x,item.y, false);
+  if (item.type === "and") drawAND(item.x,item.y, item.id === (getSelectedItem()?.id));
+  if (item.type === "or") drawOR(item.x,item.y, item.id === (getSelectedItem()?.id));
+  if (item.type === "not") drawNOT(item.x,item.y, item.id === (getSelectedItem()?.id));
+  if (item.type === "res1210") drawSMD1210Pads(item.x,item.y, item.id === (getSelectedItem()?.id));
+  if (item.type === "extpad") drawExternalPad(item.x,item.y, item.id === (getSelectedItem()?.id));
+
+  ctx.restore();
+}
+
+function line(x1,y1,x2,y2,color=SD,width=5) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x2,y2);
+  ctx.stroke();
+}
+
+function pinDot(x,y,color="#444",size=5) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x,y,size,0,Math.PI * 2);
+  ctx.fill();
+}
+
+function txt(s,x,y,color="#f4f4f4",size=18) {
+  if (!showDims()) return;
+  ctx.fillStyle = color;
+  ctx.font = size + "px Arial";
+  ctx.fillText(s,x,y);
+}
+
+function alwaysTxt(s,x,y,color="#222222",size=12) {
+  ctx.fillStyle = color;
+  ctx.font = size + "px Arial";
+  ctx.fillText(s,x,y);
+}
+
+function channel(cx,cy,active=false,small=false) {
+  const gap = small ? 14 : CHANNEL_GAP;
+  ctx.fillStyle = active ? "rgba(0,255,153,0.78)" : CHANNEL;
+  ctx.fillRect(cx - gap/2, cy - 8, gap, 16);
+  ctx.strokeStyle = active ? ACTIVE : "#4ecca3";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cx - gap/2, cy - 8, gap, 16);
+}
+
+function channelKeepout(cx,cy) {
+  ctx.strokeStyle = "rgba(78,204,163,0.28)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8,6]);
+  ctx.strokeRect(cx-62, cy-32, 124, 64);
+  ctx.setLineDash([]);
+}
+
+function drawFullCell(cx,cy,active=false) {
+  const p = transistorGeometry(cx,cy);
+  line(p.emitterOuter.x,p.emitterOuter.y,p.emitterInner.x,p.emitterInner.y,active ? ACTIVE : SD,5);
+  line(p.collectorInner.x,p.collectorInner.y,p.collectorOuter.x,p.collectorOuter.y,active ? ACTIVE : SD,5);
+  line(p.baseInner.x,p.baseInner.y,p.baseOuter.x,p.baseOuter.y,BASE_A,5);
+  channel(cx,cy,active,false);
+
+  txt("8mm", (p.emitterOuter.x+p.emitterInner.x)/2-24, cy+32, "#ffcf66", 18);
+  txt("8mm", (p.collectorInner.x+p.collectorOuter.x)/2-24, cy+32, "#ffcf66", 18);
+  txt("8mm", cx+12, (p.baseInner.y+p.baseOuter.y)/2, "#7dbdff", 18);
+
+  // Transistor terminal labels for the single embroidered transistor cell.
+  // Physical naming convention: left = C, right/output side = E.
+  labelTerminal("C", p.emitterOuter, -18, -10);
+  labelTerminal("E", p.collectorOuter, 8, -10);
+  labelTerminal("B", p.baseOuter, 8, 4);
+}
+
+function transistorGeometry(cx,cy) {
+  const dir = gateDirectionSetting();
+  const baseInnerY = dir === "up" ? cy - GATE_CHANNEL_CLEARANCE : cy + GATE_CHANNEL_CLEARANCE;
+  const baseOuterY = dir === "up" ? baseInnerY - TERMINAL : baseInnerY + TERMINAL;
+
+  const emitterOuter = {x:cx - CHANNEL_GAP/2 - TERMINAL, y:cy};
+  const emitterInner = {x:cx - CHANNEL_GAP/2, y:cy};
+  const collectorInner = {x:cx + CHANNEL_GAP/2, y:cy};
+  const collectorOuter = {x:cx + CHANNEL_GAP/2 + TERMINAL, y:cy};
+  const baseInner = {x:cx, y:baseInnerY};
+  const baseOuter = {x:cx, y:baseOuterY};
+
+  return {
+    // Legacy geometric identifiers are retained so old projects remain compatible.
+    // Physical v13 convention maps the left legacy emitter fields to C and the
+    // right legacy collector fields to E/output.
+    emitterOuter, emitterInner,
+    collectorInner, collectorOuter,
+    cOuter: emitterOuter,
+    cInner: emitterInner,
+    eInner: collectorInner,
+    eOuter: collectorOuter,
+    baseInner, baseOuter,
+    // Backward-compatible aliases for older saved projects / exporter helpers.
+    sourceOuter: emitterOuter,
+    sourceInner: emitterInner,
+    drainInner: collectorInner,
+    drainOuter: collectorOuter,
+    gateInner: baseInner,
+    gateOuter: baseOuter
+  };
+}
+
+function branchGeometry(channelX, y, gateDirection) {
+  const dir = gateDirection === "same" ? gateDirectionSetting() : gateDirection;
+
+  // Every transistor branch uses exactly 8 mm terminals:
+  // emitter = 8 mm, collector = 8 mm, base = 8 mm.
+  const emitterEnd = {x:channelX - CHANNEL_GAP/2 - TERMINAL, y};
+  const collectorEnd = {x:channelX + CHANNEL_GAP/2 + TERMINAL, y};
+  const baseInnerY = dir === "down" ? y + GATE_CHANNEL_CLEARANCE : y - GATE_CHANNEL_CLEARANCE;
+  const baseOuterY = dir === "down" ? baseInnerY + TERMINAL : baseInnerY - TERMINAL;
+  const baseInner = {x:channelX, y:baseInnerY};
+  const baseOuter = {x:channelX, y:baseOuterY};
+
+  return {
+    // Legacy field names are retained; physical v13 labels are C on the left
+    // and E on the right/output side.
+    emitterEnd,
+    collectorEnd,
+    cEnd: emitterEnd,
+    eEnd: collectorEnd,
+    baseInner,
+    baseOuter,
+    // Backward-compatible aliases used by layout/export helpers.
+    leftEnd: emitterEnd,
+    rightEnd: collectorEnd,
+    gateInner: baseInner,
+    gateOuter: baseOuter,
+    dir
+  };
+}
+
+function drawTransistorBranch(channelX, y, baseColor, active, gateDirection) {
+  const g = branchGeometry(channelX,y,gateDirection);
+
+  line(g.emitterEnd.x,y,channelX - CHANNEL_GAP/2,y,active ? ACTIVE : SD,5);
+  line(channelX + CHANNEL_GAP/2,y,g.collectorEnd.x,y,active ? ACTIVE : SD,5);
+  channel(channelX,y,active,false);
+  channelKeepout(channelX,y);
+
+  line(g.baseInner.x,g.baseInner.y,g.baseOuter.x,g.baseOuter.y,baseColor,5);
+  // Physical naming convention: left = C, right/output side = E.
+  labelTerminal("C", g.emitterEnd, -18, -10);
+  labelTerminal("E", g.collectorEnd, 8, -10);
+  labelTerminal("B", g.baseOuter, g.dir === "down" ? 8 : 8, g.dir === "down" ? 16 : -8);
+  txt("8mm", channelX+14, g.dir === "down" ? y+72 : y-64, "#7dbdff", 18);
+
+  return g;
+}
+
+function channelVertical(cx, cy, active=false) {
+  const gap = CHANNEL_GAP;
+  ctx.fillStyle = active ? "rgba(0,255,153,0.78)" : CHANNEL;
+  ctx.fillRect(cx - 8, cy - gap/2, 16, gap);
+  ctx.strokeStyle = active ? ACTIVE : "#4ecca3";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 8, cy - gap/2, 16, gap);
+}
+
+function channelKeepoutVertical(cx, cy) {
+  ctx.strokeStyle = "rgba(78,204,163,0.28)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8,6]);
+  ctx.strokeRect(cx - 32, cy - 62, 64, 124);
+  ctx.setLineDash([]);
+}
+
+function verticalBranchGeometry(channelX, channelY, baseSide="left") {
+  const dir = baseSide === "right" ? "right" : "left";
+  const collectorEnd = {x:channelX, y:channelY - CHANNEL_GAP/2 - TERMINAL};
+  const collectorInner = {x:channelX, y:channelY - CHANNEL_GAP/2};
+  const emitterInner = {x:channelX, y:channelY + CHANNEL_GAP/2};
+  const emitterEnd = {x:channelX, y:channelY + CHANNEL_GAP/2 + TERMINAL};
+  const baseInnerX = dir === "right" ? channelX + GATE_CHANNEL_CLEARANCE : channelX - GATE_CHANNEL_CLEARANCE;
+  const baseOuterX = dir === "right" ? baseInnerX + TERMINAL : baseInnerX - TERMINAL;
+  const baseInner = {x:baseInnerX, y:channelY};
+  const baseOuter = {x:baseOuterX, y:channelY};
+
+  return {
+    collectorEnd, collectorInner,
+    emitterInner, emitterEnd,
+    baseInner, baseOuter,
+    // aliases for shared helpers
+    gateInner: baseInner,
+    gateOuter: baseOuter,
+    leftEnd: emitterEnd,
+    rightEnd: collectorEnd,
+    dir
+  };
+}
+
+function drawVerticalTransistorBranch(channelX, channelY, baseColor, active=false, baseSide="left") {
+  const g = verticalBranchGeometry(channelX, channelY, baseSide);
+
+  line(g.collectorEnd.x, g.collectorEnd.y, g.collectorInner.x, g.collectorInner.y, active ? ACTIVE : SD, 5);
+  line(g.emitterInner.x, g.emitterInner.y, g.emitterEnd.x, g.emitterEnd.y, active ? ACTIVE : SD, 5);
+  channelVertical(channelX, channelY, active);
+  channelKeepoutVertical(channelX, channelY);
+  line(g.baseInner.x, g.baseInner.y, g.baseOuter.x, g.baseOuter.y, baseColor, 5);
+
+  labelTerminal("C", g.collectorEnd, 8, -8);
+  labelTerminal("E", g.emitterEnd, 8, 16);
+  labelTerminal("B", g.baseOuter, g.dir === "left" ? -18 : 8, -8);
+
+  return g;
+}
+
+function verticalSeriesBranchYs(cy) {
+  const centerSpacing = (TERMINAL * 2) + CHANNEL_GAP + SERIES_BRANCH_GAP;
+  return {upperY: cy - centerSpacing / 2, lowerY: cy + centerSpacing / 2};
+}
+
+function verticalParallelBranchXs(cx) {
+  // Keep a true 10 mm open space between the vertical transistor keepout boxes.
+  const keepoutWidth = 64;
+  const centerSpacing = keepoutWidth + PARALLEL_GATE_SPACING;
+  return {leftX: cx - centerSpacing / 2, rightX: cx + centerSpacing / 2};
+}
+
+
+function drawPadCrossMeshVisual(cx, cy, w, h) {
+  // Sparse serpentine preview for conductive-thread pads.
+  // This matches the optimized DST export better than the old dense cross-mesh.
+  const left = cx - w/2 + 2;
+  const right = cx + w/2 - 2;
+  const top = cy - h/2 + 2;
+  const bottom = cy + h/2 - 2;
+  const spacing = PAD_FILL_SPACING;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(cx - w/2, cy - h/2, w, h);
+  ctx.clip();
+
+  ctx.strokeStyle = "rgba(255,255,255,0.55)";
+  ctx.lineWidth = 1;
+
+  let dir = 1;
+  for (let y = top + spacing/2; y <= bottom; y += spacing) {
+    ctx.beginPath();
+    if (dir > 0) {
+      ctx.moveTo(left, y);
+      ctx.lineTo(right, y);
+    } else {
+      ctx.moveTo(right, y);
+      ctx.lineTo(left, y);
+    }
+    ctx.stroke();
+    dir *= -1;
+  }
+
+  ctx.restore();
+}
+
+function drawSMD1210Pads(cx, cy, isSelected=false) {
+  const topPadY = cy - RES1210_PAD_SPACING/2 - RES1210_PAD_H/2;
+  const botPadY = cy + RES1210_PAD_SPACING/2 - RES1210_PAD_H/2;
+
+  if (isSelected) {
+    ctx.strokeStyle = "rgba(0,102,255,0.45)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6,5]);
+    ctx.strokeRect(cx - RES1210_PAD_W/2 - 10, topPadY - 10, RES1210_PAD_W + 20, (botPadY + RES1210_PAD_H) - topPadY + 20);
+    ctx.setLineDash([]);
+  }
+
+  ctx.fillStyle = PAD;
+  ctx.fillRect(cx - RES1210_PAD_W/2, topPadY, RES1210_PAD_W, RES1210_PAD_H);
+  ctx.fillRect(cx - RES1210_PAD_W/2, botPadY, RES1210_PAD_W, RES1210_PAD_H);
+
+  drawPadCrossMeshVisual(cx, topPadY + RES1210_PAD_H/2, RES1210_PAD_W, RES1210_PAD_H);
+  drawPadCrossMeshVisual(cx, botPadY + RES1210_PAD_H/2, RES1210_PAD_W, RES1210_PAD_H);
+
+  ctx.strokeStyle = isSelected ? "#00ffff" : "#6b6f88";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(cx - RES1210_PAD_W/2, topPadY, RES1210_PAD_W, RES1210_PAD_H);
+  ctx.strokeRect(cx - RES1210_PAD_W/2, botPadY, RES1210_PAD_W, RES1210_PAD_H);
+
+  txt("1210 pads", cx + 34, cy + 8, "#f4f4f4", 18);
+  labelBox("R", cx + RES1210_PAD_W/2 + 7, cy + 4, 11);
+}
+
+function drawExternalPad(cx, cy, isSelected=false) {
+  if (isSelected) {
+    ctx.strokeStyle = "rgba(0,102,255,0.45)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6,5]);
+    ctx.strokeRect(cx - EXTPAD_W/2 - 8, cy - EXTPAD_H/2 - 8, EXTPAD_W + 16, EXTPAD_H + 16);
+    ctx.setLineDash([]);
+  }
+
+  ctx.fillStyle = PAD;
+  ctx.fillRect(cx - EXTPAD_W/2, cy - EXTPAD_H/2, EXTPAD_W, EXTPAD_H);
+
+  drawPadCrossMeshVisual(cx, cy, EXTPAD_W, EXTPAD_H);
+
+  ctx.strokeStyle = isSelected ? "#0066ff" : "#6b6f88";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(cx - EXTPAD_W/2, cy - EXTPAD_H/2, EXTPAD_W, EXTPAD_H);
+
+  pinDot(cx, cy, PACKAGE, 5);
+  labelBox("P", cx - EXTPAD_W/2 + 4, cy - EXTPAD_H/2 + 13, 11);
+  txt("6×6mm", cx + EXTPAD_W/2 + 8, cy + 5, "#f4f4f4", 16);
+}
+
+function outwardPadPoint(x, y, dir, dist=EXTPAD_OFFSET) {
+  if (dir === "left") return {x:x - dist, y};
+  if (dir === "right") return {x:x + dist, y};
+  if (dir === "up") return {x, y:y - dist};
+  if (dir === "down") return {x, y:y + dist};
+  return {x, y};
+}
+
+function gatePadPoint(g) {
+  return outwardPadPoint(g.gateOuter.x, g.gateOuter.y, g.dir, EXTPAD_OFFSET);
+}
+
+function loadResistorGeometry(loadX, outputY) {
+  const topPad = {x:loadX, y:outputY + LOAD_TOP_PAD_OFFSET};
+  const centerY = topPad.y + RES1210_PAD_SPACING / 2;
+  const bottomPad = {x:loadX, y:centerY + RES1210_PAD_SPACING / 2};
+  const gnd = {x:loadX, y:outputY + LOAD_GND_OFFSET};
+
+  return {x:loadX, outputY, centerY, topPad, bottomPad, gnd};
+}
+
+function drawPadConnection(from, to, color=BUS, width=5) {
+  line(from.x, from.y, to.x, to.y, color, width);
+}
+
+function drawFixedExternalPad(from, pad, color=BUS, isSelected=false) {
+  drawPadConnection(from, pad, color, 5);
+  drawExternalPad(pad.x, pad.y, isSelected);
+}
+
+function drawIntegratedLoadResistor(loadX, outputY, active=false, isSelected=false) {
+  const g = loadResistorGeometry(loadX, outputY);
+  const wireColor = active ? ACTIVE : BUS;
+
+  // Fixed connected load/reference path:
+  // output node -> top 1210 pad, and bottom 1210 pad -> ground/reference pad. The gap between pads stays open.
+  // Do NOT connect the two resistor pads together.
+  // The resistor component itself bridges these two pads.
+  line(loadX, outputY, loadX, g.topPad.y - RES1210_PAD_H/2, wireColor, 5);
+  line(loadX, g.bottomPad.y + RES1210_PAD_H/2, loadX, g.gnd.y, BUS, 5);
+
+  drawSMD1210Pads(loadX, g.centerY, isSelected);
+  drawExternalPad(g.gnd.x, g.gnd.y, isSelected);
+}
+
+function pullupResistorGeometry(loadX, outputY) {
+  const bottomPad = {x:loadX, y:outputY - LOAD_TOP_PAD_OFFSET};
+  const centerY = bottomPad.y - RES1210_PAD_SPACING / 2;
+  const topPad = {x:loadX, y:centerY - RES1210_PAD_SPACING / 2};
+  const vcc = {x:loadX, y:outputY - LOAD_GND_OFFSET};
+  return {x:loadX, outputY, centerY, topPad, bottomPad, vcc};
+}
+
+function drawIntegratedPullupResistor(loadX, outputY, outputActive=false, isSelected=false) {
+  const g = pullupResistorGeometry(loadX, outputY);
+  const outputColor = outputActive ? ACTIVE : BUS;
+
+  // NOT gate pull-up:
+  // VCC pad -> top resistor pad, bottom resistor pad -> output node.
+  // The gap between pads stays open and is bridged by the physical resistor.
+  line(loadX, g.vcc.y, loadX, g.topPad.y - RES1210_PAD_H/2, BUS, 5);
+  line(loadX, g.bottomPad.y + RES1210_PAD_H/2, loadX, outputY, outputColor, 5);
+
+  drawSMD1210Pads(loadX, g.centerY, isSelected);
+  drawExternalPad(g.vcc.x, g.vcc.y, isSelected);
+}
+
+function downwardLoadSideGeometry(loadX, anchorY) {
+  const g = loadResistorGeometry(loadX, anchorY);
+  const sidePad = {x:loadX + EXTPAD_OFFSET, y:g.gnd.y};
+  return {...g, sidePad};
+}
+
+function upwardPullupSideGeometry(loadX, anchorY) {
+  const g = pullupResistorGeometry(loadX, anchorY);
+  const sidePad = {x:loadX - EXTPAD_OFFSET, y:g.vcc.y};
+  return {...g, sidePad};
+}
+
+function drawDownwardLoadWithRightPad(loadX, anchorY, isSelected=false) {
+  const g = downwardLoadSideGeometry(loadX, anchorY);
+  line(loadX, anchorY, loadX, g.topPad.y - RES1210_PAD_H/2, BUS, 5);
+  line(loadX, g.bottomPad.y + RES1210_PAD_H/2, loadX, g.gnd.y, BUS, 5);
+  line(loadX, g.gnd.y, g.sidePad.x, g.sidePad.y, BUS, 5);
+  drawSMD1210Pads(loadX, g.centerY, isSelected);
+  drawExternalPad(g.sidePad.x, g.sidePad.y, isSelected);
+  return g;
+}
+
+function drawUpwardPullupWithLeftPad(loadX, anchorY, isSelected=false) {
+  const g = upwardPullupSideGeometry(loadX, anchorY);
+  line(g.sidePad.x, g.sidePad.y, loadX, g.vcc.y, BUS, 5);
+  line(loadX, g.vcc.y, loadX, g.topPad.y - RES1210_PAD_H/2, BUS, 5);
+  line(loadX, g.bottomPad.y + RES1210_PAD_H/2, loadX, anchorY, BUS, 5);
+  drawSMD1210Pads(loadX, g.centerY, isSelected);
+  drawExternalPad(g.sidePad.x, g.sidePad.y, isSelected);
+  return g;
+}
+
+
+
+function parallelBranchYs(cy) {
+  // Each horizontal transistor keepout is 64 px high. Add a true 10 mm
+  // clear gap between keepouts, matching the approved OR model.
+  const keepoutHeight = 64;
+  const centerSpacing = keepoutHeight + PARALLEL_GATE_SPACING;
+  return {
+    topY: cy - centerSpacing / 2,
+    bottomY: cy + centerSpacing / 2
+  };
+}
+
+
+function seriesBranchXs(cx) {
+  const centerSpacing = (TERMINAL * 2) + CHANNEL_GAP + SERIES_BRANCH_GAP;
+  return {
+    channelAX: cx - centerSpacing / 2,
+    channelBX: cx + centerSpacing / 2
+  };
+}
+
+function labelBox(text, x, y, size=11) {
+  ctx.save();
+  ctx.font = size + "px Arial";
+  const pad = 3;
+  const w = ctx.measureText(text).width;
+  ctx.fillStyle = "rgba(255,255,255,0.88)";
+  ctx.fillRect(x - pad, y - size - pad + 2, w + pad * 2, size + pad * 2);
+  ctx.strokeStyle = "rgba(8,38,77,0.45)";
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(x - pad, y - size - pad + 2, w + pad * 2, size + pad * 2);
+  ctx.fillStyle = "#111";
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function labelPad(text, p, dx=10, dy=-10) {
+  if (!showElectricalLabelsFlag || !p) return;
+  labelBox(text, p.x + dx, p.y + dy, 11);
+}
+
+function toggleElectricalLabels() {
+  showElectricalLabelsFlag = !showElectricalLabelsFlag;
+  draw();
+}
+
+function labelTerminal(text, p, dx=6, dy=-6) {
+  labelBox(text, p.x + dx, p.y + dy, 11);
+}
+
+function drawVoutOnly(x, y, active) {
+  line(x, y, x + VOUT, y, active ? ACTIVE : BUS,5);
+  pinDot(x + VOUT, y, active ? ACTIVE : OFF);
+  txt("25mm", x + 70, y - 22, "#f4f4f4", 24);
+  txt("Vout", x + VOUT + 16, y - 10, "#f4f4f4", 24);
+}
+
+function drawOR(cx,cy,isLive=false) {
+  const isSelected = selected && selected.kind === "item" && getSelectedItem()?.x === cx && getSelectedItem()?.y === cy;
+  const {topY, bottomY} = parallelBranchYs(cy);
+  const channelX = cx;
+
+  // Intended HIGH→ON OR reference: common C supply bus, common E output bus, resistor pull-down.
+  const top = drawTransistorBranch(channelX, topY, BASE_A, false, "up");
+  const bottom = drawTransistorBranch(channelX, bottomY, BASE_B, false, "up");
+
+  const emitterBusX = top.emitterEnd.x;
+  const collectorBusX = top.collectorEnd.x;
+  const vccPad = {x:emitterBusX - EXTPAD_OFFSET, y:cy};
+  const outPad = {x:collectorBusX + EXTPAD_OFFSET, y:cy};
+  const baseAPad = {x:top.baseOuter.x, y:top.baseOuter.y};
+  const baseBPad = {x:bottom.baseOuter.x, y:bottom.baseOuter.y};
+
+  line(emitterBusX, topY, emitterBusX, bottomY, BUS, 5);
+  line(collectorBusX, topY, collectorBusX, bottomY, BUS, 5);
+  line(vccPad.x, vccPad.y, emitterBusX, cy, BUS, 5);
+  line(collectorBusX, cy, outPad.x, outPad.y, BUS, 5);
+
+  drawExternalPad(vccPad.x, vccPad.y, isSelected);
+  drawExternalPad(outPad.x, outPad.y, isSelected);
+  drawExternalPad(baseAPad.x, baseAPad.y, isSelected);
+  drawExternalPad(baseBPad.x, baseBPad.y, isSelected);
+  const load = drawDownwardLoadWithRightPad(collectorBusX, bottomY, isSelected);
+
+  labelPad("VCC", vccPad, -18, -12);
+  labelPad("A (B/G)", baseAPad, 10, -10);
+  labelPad("B (B/G)", baseBPad, 10, -10);
+  labelPad("OUT", outPad, 10, -10);
+  labelPad("GND", load.sidePad, 10, 18);
+  labelBox("OR", cx - 14, topY - TERMINAL - 38, 14);
+}
+
+function drawAND(cx,cy,isLive=false) {
+  const isSelected = selected && selected.kind === "item" && getSelectedItem()?.x === cx && getSelectedItem()?.y === cy;
+  const y = cy;
+  const {channelAX, channelBX} = seriesBranchXs(cx);
+
+  // Intended HIGH→ON AND reference: C(A) at VCC, E(A)=C(B), E(B)=OUT, resistor pull-down.
+  // Geometry of both transistor cells is preserved.
+  const first = drawTransistorBranch(channelAX, y, BASE_A, false, "same");
+  const second = drawTransistorBranch(channelBX, y, BASE_B, false, "same");
+  line(first.collectorEnd.x, y, second.emitterEnd.x, y, BUS, 5);
+
+  const vccPad = {x:first.emitterEnd.x - EXTPAD_OFFSET, y};
+  const outputNode = {x:second.collectorEnd.x, y};
+  const outPad = {x:outputNode.x + VOUT, y};
+  const baseAPad = gatePadPoint(first);
+  const baseBPad = gatePadPoint(second);
+  const load = loadResistorGeometry(outputNode.x, outputNode.y);
+
+  drawFixedExternalPad(first.emitterEnd, vccPad, BUS, isSelected);
+  drawFixedExternalPad(first.baseOuter, baseAPad, BASE_A, isSelected);
+  drawFixedExternalPad(second.baseOuter, baseBPad, BASE_B, isSelected);
+  line(outputNode.x, outputNode.y, outPad.x, outPad.y, BUS, 5);
+  drawIntegratedLoadResistor(outputNode.x, outputNode.y, false, isSelected);
+  drawExternalPad(outPad.x, outPad.y, isSelected);
+
+  labelPad("VCC", vccPad, -18, -12);
+  labelPad("A (B/G)", baseAPad, 10, -10);
+  labelPad("B (B/G)", baseBPad, 10, -10);
+  labelPad("OUT", outPad, 10, -10);
+  labelPad("GND", load.gnd, 10, 18);
+  labelBox("AND", cx - 18, cy - 96, 14);
+}
+
+function drawNOT(cx,cy,isLive=false) {
+  const isSelected = selected && selected.kind === "item" && getSelectedItem()?.x === cx && getSelectedItem()?.y === cy;
+  const y = cy;
+  const channelX = cx - 30;
+
+  // Intended HIGH→ON NOT reference: C at GND, E at OUT, pull-up resistor from VCC to E.
+  const t = drawTransistorBranch(channelX, y, BASE_A, false, "same");
+  const outNode = {x:t.collectorEnd.x, y};
+  const outPad = {x:t.collectorEnd.x + VOUT, y};
+  const gndPad = {x:t.emitterEnd.x - EXTPAD_OFFSET, y};
+  const gatePad = gatePadPoint(t);
+  const pullup = pullupResistorGeometry(outNode.x, y);
+
+  drawFixedExternalPad(t.emitterEnd, gndPad, BUS, isSelected);
+  drawFixedExternalPad(t.baseOuter, gatePad, BASE_A, isSelected);
+  line(outNode.x, y, outPad.x, outPad.y, BUS, 5);
+  drawIntegratedPullupResistor(outNode.x, y, false, isSelected);
+  drawExternalPad(outPad.x, outPad.y, isSelected);
+
+  labelPad("GND", gndPad, -18, -12);
+  labelPad("A (B/G)", gatePad, 10, -10);
+  labelPad("OUT", outPad, 10, -10);
+  labelPad("VCC", pullup.vcc, 10, -10);
+  labelBox("NOT", cx - 18, cy - 96, 14);
+}
+
+
+
+function getPinsUnrotated(item) {
+  if (item.type === "transistor") {
+    const g = transistorGeometry(item.x,item.y);
+    return [
+      {itemId:item.id, name:"collector", x:g.cOuter.x, y:g.cOuter.y},
+      {itemId:item.id, name:"emitter", x:g.eOuter.x, y:g.eOuter.y},
+      {itemId:item.id, name:"base", x:g.baseOuter.x, y:g.baseOuter.y}
+    ];
+  }
+
+  if (item.type === "and") {
+    const y = item.y;
+    const {channelAX, channelBX} = seriesBranchXs(item.x);
+    const first = branchGeometry(channelAX, y, "same");
+    const second = branchGeometry(channelBX, y, "same");
+    const vccPad = {x:first.emitterEnd.x - EXTPAD_OFFSET, y};
+    const outputNode = {x:second.collectorEnd.x, y};
+    const outPad = {x:outputNode.x + VOUT, y};
+    const load = loadResistorGeometry(outputNode.x, outputNode.y);
+    return [
+      {itemId:item.id, name:"vcc", x:vccPad.x, y:vccPad.y},
+      {itemId:item.id, name:"baseA", x:gatePadPoint(first).x, y:gatePadPoint(first).y},
+      {itemId:item.id, name:"baseB", x:gatePadPoint(second).x, y:gatePadPoint(second).y},
+      {itemId:item.id, name:"vout", x:outPad.x, y:outPad.y},
+      {itemId:item.id, name:"gnd", x:load.gnd.x, y:load.gnd.y}
+    ];
+  }
+
+  if (item.type === "or") {
+    const {topY, bottomY} = parallelBranchYs(item.y);
+    const top = branchGeometry(item.x, topY, "up");
+    const bottom = branchGeometry(item.x, bottomY, "up");
+    const emitterBusX = top.emitterEnd.x;
+    const collectorBusX = top.collectorEnd.x;
+    const vccPad = {x:emitterBusX - EXTPAD_OFFSET, y:item.y};
+    const outPad = {x:collectorBusX + EXTPAD_OFFSET, y:item.y};
+    const load = downwardLoadSideGeometry(collectorBusX, bottomY);
+    return [
+      {itemId:item.id, name:"vcc", x:vccPad.x, y:vccPad.y},
+      {itemId:item.id, name:"baseA", x:top.baseOuter.x, y:top.baseOuter.y},
+      {itemId:item.id, name:"baseB", x:bottom.baseOuter.x, y:bottom.baseOuter.y},
+      {itemId:item.id, name:"vout", x:outPad.x, y:outPad.y},
+      {itemId:item.id, name:"gnd", x:load.sidePad.x, y:load.sidePad.y}
+    ];
+  }
+
+  if (item.type === "not") {
+    const y = item.y;
+    const t = branchGeometry(item.x - 30, y, "same");
+    const outPad = {x:t.collectorEnd.x + VOUT, y};
+    const pullup = pullupResistorGeometry(t.collectorEnd.x, y);
+    const gndPad = {x:t.emitterEnd.x - EXTPAD_OFFSET, y};
+    const gatePad = gatePadPoint(t);
+    return [
+      {itemId:item.id, name:"vcc", x:pullup.vcc.x, y:pullup.vcc.y},
+      {itemId:item.id, name:"baseA", x:gatePad.x, y:gatePad.y},
+      {itemId:item.id, name:"vout", x:outPad.x, y:outPad.y},
+      {itemId:item.id, name:"gnd", x:gndPad.x, y:gndPad.y}
+    ];
+  }
+
+  if (item.type === "res1210") {
+    const topY = item.y - RES1210_PAD_SPACING/2;
+    const botY = item.y + RES1210_PAD_SPACING/2;
+    return [
+      {itemId:item.id, name:"padTop", x:item.x, y:topY},
+      {itemId:item.id, name:"padBottom", x:item.x, y:botY}
+    ];
+  }
+
+  if (item.type === "extpad") {
+    return [{itemId:item.id, name:"pad", x:item.x, y:item.y}];
+  }
+
+  return [];
+}
+
+function getPins(item) {
+  const angle = normalizeRotation(item?.rotation || 0);
+  return getPinsUnrotated(item).map(pin => {
+    const p = rotatePointAround(pin, item.x, item.y, angle);
+    return {...pin, x:p.x, y:p.y};
+  });
+}
+
+
+function allPins() {
+  return items.flatMap(item => getPins(item));
+}
+
+function findPin(x,y) {
+  let best = null;
+  let bestD = 14;
+  allPins().forEach(p => {
+    const d = Math.hypot(p.x - x, p.y - y);
+    if (d < bestD) {
+      best = p;
+      bestD = d;
+    }
+  });
+  return best;
+}
+
+function normalizePinName(name) {
+  const aliases = {
+    source: "emitter",
+    drain: "collector",
+    gate: "base",
+    gateA: "baseA",
+    gateB: "baseB"
+  };
+  return aliases[name] || name;
+}
+
+function pinByRef(ref) {
+  const item = items.find(i => i.id === ref.itemId);
+  if (!item) return null;
+  const pinName = normalizePinName(ref.pin);
+  return getPins(item).find(p => p.name === pinName) || null;
+}
+
+function drawPins() {
+  allPins().forEach(p => {
+    const isHover = hoverPin && hoverPin.itemId === p.itemId && hoverPin.name === p.name;
+    const isRouteStart = routeStart && routeStart.itemId === p.itemId && routeStart.name === p.name;
+
+    pinDot(p.x,p.y,isRouteStart ? ACTIVE : (isHover ? "#ffffff" : PIN), isHover || isRouteStart ? 7 : 5);
+  });
+}
+
+function routePoints(route) {
+  const a = pinByRef(route.start);
+  const b = pinByRef(route.end);
+  if (!a || !b) return null;
+  return [{x:a.x,y:a.y}, {x:b.x,y:a.y}, {x:b.x,y:b.y}];
+}
+
+function routeLengthMm(route) {
+  const pts = routePoints(route);
+  if (!pts) return 0;
+  let lengthPx = 0;
+  for (let i=0; i<pts.length-1; i++) {
+    lengthPx += Math.abs(pts[i+1].x - pts[i].x) + Math.abs(pts[i+1].y - pts[i].y);
+  }
+  return lengthPx / MM;
+}
+
+function drawRoute(route) {
+  const pts = routePoints(route);
+  if (!pts) return;
+  const isSelected = selected && selected.kind === "route" && selected.id === route.id;
+
+  ctx.strokeStyle = isSelected ? ROUTE_SELECTED : ROUTE;
+  ctx.lineWidth = isSelected ? 5 : 4;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x,pts[0].y);
+  for (let i=1; i<pts.length; i++) ctx.lineTo(pts[i].x,pts[i].y);
+  ctx.stroke();
+
+  if (showDims() || isSelected) {
+    const mid = pts[1];
+    alwaysTxt(routeLengthMm(route).toFixed(1) + " mm", mid.x + 8, mid.y - 8, isSelected ? ROUTE_SELECTED : "#333333", 13);
+  }
+}
+
+function drawRoutePreview() {
+  if (!routeStart || tool !== "route") return;
+  const a = pinByRef({itemId:routeStart.itemId, pin:routeStart.name});
+  if (!a) return;
+  const b = hoverPin || {x:mouse.x, y:mouse.y};
+
+  ctx.strokeStyle = ACTIVE;
+  ctx.lineWidth = 3;
+  ctx.setLineDash([8,6]);
+  ctx.beginPath();
+  ctx.moveTo(a.x,a.y);
+  ctx.lineTo(b.x,a.y);
+  ctx.lineTo(b.x,b.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function findRoute(x,y) {
+  let best = null;
+  let bestD = 10;
+
+  routes.forEach(route => {
+    const pts = routePoints(route);
+    if (!pts) return;
+
+    for (let i=0; i<pts.length-1; i++) {
+      const d = pointSegmentDistance(x,y,pts[i].x,pts[i].y,pts[i+1].x,pts[i+1].y);
+      if (d < bestD) {
+        best = route;
+        bestD = d;
+      }
+    }
+  });
+
+  return best;
+}
+
+function pointSegmentDistance(px,py,x1,y1,x2,y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const l2 = dx*dx + dy*dy;
+  if (l2 === 0) return Math.hypot(px-x1, py-y1);
+  let t = ((px-x1)*dx + (py-y1)*dy) / l2;
+  t = Math.max(0, Math.min(1, t));
+  const x = x1 + t*dx;
+  const y = y1 + t*dy;
+  return Math.hypot(px-x, py-y);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function textToHtml(value) {
+  return escapeHtml(value).replace(/\n/g, "<br>");
+}
+
+function updateInspector() {
+  // Geometry-only editor: no simulator/inspector panel is displayed.
+}
+
+function renderInputControls() { return ""; }
+function toggleInput() { return; }
+
+const LOGIC_TOPOLOGY = {
+  not:  {network:"single",   side:"pulldown", equation:"Y = NOT A"},
+  and:  {network:"series",   side:"pullup",   equation:"Y = A AND B"},
+  or:   {network:"parallel", side:"pullup",   equation:"Y = A OR B"},
+};
+
+function targetLogic(type, A, B=0) {
+  if (type === "not") return A ? 0 : 1;
+  if (type === "and") return A && B ? 1 : 0;
+  if (type === "or") return A || B ? 1 : 0;
+  return null;
+}
+
+function inputResistance(bit, params) {
+  return bit ? params.r1 : params.r0;
+}
+
+function networkResistance(type, A, B, params) {
+  const topology = LOGIC_TOPOLOGY[type];
+  if (!topology) return NaN;
+  const rA = inputResistance(A, params);
+  if (topology.network === "single") return rA;
+  const rB = inputResistance(B, params);
+  if (topology.network === "series") return rA + rB;
+  if (topology.network === "parallel") return (rA * rB) / (rA + rB);
+  return NaN;
+}
+
+function evalGate(type, A, B=0, params={}) {
+  const p = {
+    vdd: Number(params.vdd ?? 1),
+    r0: Number(params.r0 ?? 100000),
+    r1: Number(params.r1 ?? 1000),
+    rl: Number(params.rl ?? 10000),
+    lowFraction: Number(params.lowFraction ?? 0.2),
+    highFraction: Number(params.highFraction ?? 0.8)
+  };
+  const topology = LOGIC_TOPOLOGY[type];
+  if (!topology || ![p.vdd,p.r0,p.r1,p.rl].every(v => isFinite(v) && v > 0)) return null;
+  const rNet = networkResistance(type, A, B, p);
+
+  // Pull-up transistor network with resistor to GND:
+  // Vout = VDD * RL / (Rnet + RL)
+  // Pull-down transistor network with resistor to VCC:
+  // Vout = VDD * Rnet / (Rnet + RL)
+  const vout = topology.side === "pullup"
+    ? p.vdd * p.rl / (rNet + p.rl)
+    : p.vdd * rNet / (rNet + p.rl);
+
+  const lowLimit = p.lowFraction * p.vdd;
+  const highLimit = p.highFraction * p.vdd;
+  const logic = vout <= lowLimit ? 0 : (vout >= highLimit ? 1 : "X");
+  return {A, B, rNet, vout, logic, target:targetLogic(type,A,B), topology};
+}
+
+function truthTable(type, params) {
+  const combos = type === "not" ? [[0,0],[1,0]] : [[0,0],[0,1],[1,0],[1,1]];
+  return combos.map(([A,B]) => evalGate(type,A,B,params));
+}
+
+function inferLogicName(type, rows) {
+  const bits = rows.map(r => r.logic).join("");
+  if (type === "not") {
+    if (bits === "10") return "NOT";
+    if (bits === "01") return "BUFFER";
+    return bits.includes("X") ? "AMBIGUOUS" : "NONSTANDARD";
+  }
+  const map = {
+    "0001":"AND", "0111":"OR",
+    "0110":"XOR", "1001":"XNOR", "0000":"CONSTANT 0", "1111":"CONSTANT 1"
+  };
+  return map[bits] || (bits.includes("X") ? "AMBIGUOUS" : "NONSTANDARD");
+}
+
+function parseLogicParameters() {
+  const raw = prompt(
+    "Enter VDD, R(input=0), R(input=1), and load resistance RL in ohms.\n\n" +
+    "Example: 1,100000,1000,10000",
+    "1,100000,1000,10000"
+  );
+  if (!raw) return null;
+  const values = raw.split(/[;,\s]+/).filter(Boolean).map(Number);
+  if (values.length !== 4 || !values.every(v => isFinite(v) && v > 0)) {
+    alert("Enter exactly four positive numbers: VDD, R0, R1, RL.");
+    return null;
+  }
+  return {vdd:values[0], r0:values[1], r1:values[2], rl:values[3], lowFraction:0.2, highFraction:0.8};
+}
+
+function checkSelectedLogic() {
+  const params = parseLogicParameters();
+  if (!params) return;
+
+  const selectedItem = getSelectedItem();
+  const types = selectedItem && LOGIC_TOPOLOGY[selectedItem.type]
+    ? [selectedItem.type]
+    : ["not","and","or"];
+
+  const lines = [
+    "TEXTILE TRANSISTOR LOGIC CHECK",
+    "",
+    `VDD=${params.vdd} V, R(0)=${params.r0} Ω, R(1)=${params.r1} Ω, RL=${params.rl} Ω`,
+    "Logic thresholds: LOW ≤ 0.2·VDD; HIGH ≥ 0.8·VDD; otherwise X",
+    ""
+  ];
+
+  types.forEach(type => {
+    const rows = truthTable(type, params);
+    const inferred = inferLogicName(type, rows);
+    const pass = rows.every(r => r.logic === r.target);
+    const topology = LOGIC_TOPOLOGY[type];
+    lines.push(`${type.toUpperCase()} — ${topology.network} transistor network, ${topology.side}`);
+    rows.forEach(r => {
+      const inputText = type === "not" ? `A=${r.A}` : `A=${r.A}, B=${r.B}`;
+      lines.push(`  ${inputText} → Vout=${r.vout.toFixed(4)} V, Y=${r.logic}, target=${r.target}`);
+    });
+    lines.push(`  Result: ${inferred}; target ${type.toUpperCase()} = ${pass ? "PASS" : "FAIL"}`);
+    lines.push("");
+  });
+
+  alert(lines.join("\n"));
+}
+
+function spec(role, gate) {
+  return {
+    role,
+    base_input: gate,
+    emitter_terminal_mm: TERMINAL_MM,
+    collector_terminal_mm: TERMINAL_MM,
+    base_terminal_mm: TERMINAL_MM,
+    channel_gap_mm: CHANNEL_GAP_MM,
+    channel_gap_note: "0.65 mm / 650 µm fixed PEDOT:PSS collector-emitter channel gap used in the single embroidered transistor and all gates.",
+    gate_to_channel_clearance_mm: GATE_CHANNEL_CLEARANCE_MM,
+    physical_terminal_convention: "left C; right E/output; B/G control",
+    input_voltage_v: {logic_0: INPUT_LOGIC_0_V, logic_1: INPUT_LOGIC_1_V},
+    reported_output_terminal: REPORTED_OUTPUT_TERMINAL,
+    stitch_length_mm: STITCH_MM
+  };
+}
+
+function resistorSpec(item) {
+  return {
+    item: "1210 SMD pads",
+    role: "separate removable 1210 output reference/load footprint",
+    nominal_body_mm: {
+      length: RES1210_BODY_L_MM,
+      width: RES1210_BODY_W_MM
+    },
+    land_pattern_mm: {
+      pad_width: RES1210_PAD_W_MM,
+      pad_length: RES1210_PAD_H_MM,
+      pad_center_spacing: RES1210_PAD_CENTER_SPACING_MM,
+      inner_gap: +RES1210_PAD_INNER_GAP_MM.toFixed(3),
+      outside_span: +RES1210_PAD_OUTSIDE_SPAN_MM.toFixed(3)
+    },
+    position_px: {x: item.x, y: item.y},
+    warning: "1210/3225 body is kept as reference. Embroidery pads are 4.00 mm × 4.00 mm each with a 3.00 mm inner gap."
+  };
+}
+
+function externalPadSpec(item) {
+  return {
+    item: "external connection pad",
+    role: "probe/clip/input/output/VCC/GND connection area",
+    pad_mm: {
+      width: EXTPAD_W_MM,
+      height: EXTPAD_H_MM
+    },
+    position_px: {x: item.x, y: item.y}
+  };
+}
+
+function netlist(item) {
+  if (item.type === "transistor") {
+    return {
+      item: "single embroidered transistor",
+      position_px: {x: item.x, y: item.y},
+      transistors: [spec("primitive cell", "base")],
+      reported_output_terminal: "E",
+      input_voltage_v: {minimum: INPUT_LOGIC_0_V, maximum: INPUT_LOGIC_1_V},
+      pins: getPins(item).map(pinExport)
+    };
+  }
+
+  if (item.type === "and") {
+    return {
+      item: "AND",
+      equation: "Y = A AND B",
+      topology: "Emitter-output AND target: C(A)=VCC; E(A)=C(B); E(B)=OUT; R-1210 load from OUT to GND",
+      input_voltage_v: {logic_0: INPUT_LOGIC_0_V, logic_1: INPUT_LOGIC_1_V},
+      reported_output_terminal: "E(B)",
+      position_px: {x: item.x, y: item.y},
+      transistors: [spec("series switch 1", "A"), spec("series switch 2", "B")],
+      pins: getPins(item).map(pinExport)
+    };
+  }
+
+  if (item.type === "or") {
+    return {
+      item: "OR",
+      equation: "Y = A OR B",
+      topology: "Emitter-output OR target: C(A)=C(B)=VCC; E(A)=E(B)=OUT; R-1210 load from OUT to GND",
+      input_voltage_v: {logic_0: INPUT_LOGIC_0_V, logic_1: INPUT_LOGIC_1_V},
+      reported_output_terminal: "common E bus",
+      position_px: {x: item.x, y: item.y},
+      transistors: [spec("upper branch switch", "A"), spec("lower branch switch", "B")],
+      fabrication_warning: "Keep both PEDOT:PSS/electrolyte channel windows separated; merge after channel regions.",
+      pins: getPins(item).map(pinExport)
+    };
+  }
+
+  if (item.type === "not") {
+    return {
+      item: "NOT",
+      equation: "Y = NOT A",
+      topology: "Emitter-output NOT target: C=GND; E=OUT; fixed 1210 pull-up resistor from VCC to E",
+      input_voltage_v: {logic_0: INPUT_LOGIC_0_V, logic_1: INPUT_LOGIC_1_V},
+      reported_output_terminal: "E",
+      position_px: {x: item.x, y: item.y},
+      transistors: [spec("pull-down switch", "A")],
+      pins: getPins(item).map(pinExport)
+    };
+  }
+
+  if (item.type === "res1210") return {...resistorSpec(item), pins: getPins(item).map(pinExport)};
+  if (item.type === "extpad") return {...externalPadSpec(item), pins: getPins(item).map(pinExport)};
+
+  return {item: item.type, position_px: {x:item.x, y:item.y}, pins: getPins(item).map(pinExport)};
+}
+
+function pinExport(p) {
+  return {
+    name:p.name,
+    x_mm: +(p.x / MM).toFixed(3),
+    y_mm: +(p.y / MM).toFixed(3)
+  };
+}
+
+function route(route) {
+  const s = pinByRef(route.start);
+  const e = pinByRef(route.end);
+  return {
+    item: "routing wire",
+    route_id: route.id,
+    start: route.start,
+    end: route.end,
+    length_mm: +routeLengthMm(route).toFixed(3),
+    start_xy_mm: s ? {x:+(s.x/MM).toFixed(3), y:+(s.y/MM).toFixed(3)} : null,
+    end_xy_mm: e ? {x:+(e.x/MM).toFixed(3), y:+(e.y/MM).toFixed(3)} : null,
+    route_style: "orthogonal"
+  };
+}
+
+/* JSON export removed. DST export only. */
+
+// ---------------- Tajima DST Export ----------------
+// Corrected export: simple running stitches only.
+// Conductive paths are converted to single-line running stitches at 0.75 mm stitch length.
+// Pads are exported as running-stitch rectangle outlines plus cross-mesh running-stitch fills.
+// DST units are 0.1 mm. Canvas uses MM px per mm.
+
+function pxToDst(v) {
+  return Math.round((v / MM) * 10);
+}
+
+function addPath(paths, points, name="path") {
+  if (!points || points.length < 2) return;
+  paths.push({points, name});
+}
+
+function addLinePath(paths, x1, y1, x2, y2, name="line") {
+  addPath(paths, [{x:x1,y:y1},{x:x2,y:y2}], name);
+}
+
+function addRectOutlinePath(paths, cx, cy, w, h, name="rect") {
+  const l = cx - w/2;
+  const r = cx + w/2;
+  const t = cy - h/2;
+  const b = cy + h/2;
+
+  // One continuous running-stitch outline.
+  addPath(paths, [
+    {x:l,y:t},
+    {x:r,y:t},
+    {x:r,y:b},
+    {x:l,y:b},
+    {x:l,y:t}
+  ], name);
+}
+
+function addRectCrossMeshFillPath(paths, cx, cy, w, h, name="pad_crossmesh") {
+  // Cross-mesh pad fill using only running-stitch line segments.
+  // Two diagonal line families are clipped to the rectangle.
+  const l = cx - w/2;
+  const r = cx + w/2;
+  const t = cy - h/2;
+  const b = cy + h/2;
+  const spacing = STITCH_MM * MM;
+  const kStep = spacing * Math.SQRT2;
+
+  function uniquePush(points, p) {
+    for (const q of points) {
+      if (Math.abs(q.x - p.x) < 0.01 && Math.abs(q.y - p.y) < 0.01) return;
+    }
+    points.push(p);
+  }
+
+  function segmentForLineSlopePos(k) {
+    // y = x + k
+    const pts = [];
+    let y = l + k;
+    if (y >= t - 0.01 && y <= b + 0.01) uniquePush(pts, {x:l, y});
+    y = r + k;
+    if (y >= t - 0.01 && y <= b + 0.01) uniquePush(pts, {x:r, y});
+    let x = t - k;
+    if (x >= l - 0.01 && x <= r + 0.01) uniquePush(pts, {x, y:t});
+    x = b - k;
+    if (x >= l - 0.01 && x <= r + 0.01) uniquePush(pts, {x, y:b});
+    return pts.length >= 2 ? [pts[0], pts[1]] : null;
+  }
+
+  function segmentForLineSlopeNeg(k) {
+    // y = -x + k
+    const pts = [];
+    let y = -l + k;
+    if (y >= t - 0.01 && y <= b + 0.01) uniquePush(pts, {x:l, y});
+    y = -r + k;
+    if (y >= t - 0.01 && y <= b + 0.01) uniquePush(pts, {x:r, y});
+    let x = k - t;
+    if (x >= l - 0.01 && x <= r + 0.01) uniquePush(pts, {x, y:t});
+    x = k - b;
+    if (x >= l - 0.01 && x <= r + 0.01) uniquePush(pts, {x, y:b});
+    return pts.length >= 2 ? [pts[0], pts[1]] : null;
+  }
+
+  // Positive slope family
+  for (let k = t - r - spacing; k <= b - l + spacing; k += kStep) {
+    const seg = segmentForLineSlopePos(k);
+    if (seg) addPath(paths, seg, name + "_diag_pos");
+  }
+
+  // Negative slope family
+  for (let k = t + l - spacing; k <= b + r + spacing; k += kStep) {
+    const seg = segmentForLineSlopeNeg(k);
+    if (seg) addPath(paths, seg, name + "_diag_neg");
+  }
+}
+
+
+function addRectSparseSerpentineFillPath(paths, cx, cy, w, h, name="pad_sparse_serpentine") {
+  const inset = Math.min(2, w * 0.12, h * 0.12);
+  const left = cx - w/2 + inset;
+  const right = cx + w/2 - inset;
+  const top = cy - h/2 + inset;
+  const bottom = cy + h/2 - inset;
+  const spacing = (typeof PAD_FILL_SPACING !== "undefined") ? PAD_FILL_SPACING : STITCH_MM * MM * 1.35;
+
+  const pts = [];
+  let dir = 1;
+
+  for (let y = top + spacing/2; y <= bottom; y += spacing) {
+    if (dir > 0) {
+      pts.push({x:left, y});
+      pts.push({x:right, y});
+    } else {
+      pts.push({x:right, y});
+      pts.push({x:left, y});
+    }
+    dir *= -1;
+  }
+
+  if (pts.length < 2) {
+    pts.push({x:left, y:cy});
+    pts.push({x:right, y:cy});
+  }
+
+  addPath(paths, pts, name);
+}
+
+function addCrossMeshPadDST(paths, cx, cy, w, h, name="pad") {
+  // Outline first, then cross-mesh fill.
+  addRectOutlinePath(paths, cx, cy, w, h, name + "_outline");
+  addRectSparseSerpentineFillPath(paths, cx, cy, w, h, name + "_medium_serpentine_fill");
+}
+
+function addExternalPadDST(paths, cx, cy, name="external_pad_6x6") {
+  addCrossMeshPadDST(paths, cx, cy, EXTPAD_W, EXTPAD_H, name);
+}
+
+function addIntegratedLoadResistorDST(paths, loadX, outputY, prefix="fixed_load") {
+  const g = loadResistorGeometry(loadX, outputY);
+
+  // Do NOT stitch between the two resistor pads.
+  // That gap must remain open; the physical 1210 resistor bridges it.
+  addLinePath(paths, loadX, outputY, loadX, g.topPad.y - RES1210_PAD_H/2, prefix + "_output_to_top_resistor_pad");
+  addLinePath(paths, loadX, g.bottomPad.y + RES1210_PAD_H/2, loadX, g.gnd.y, prefix + "_resistor_to_ground_pad");
+
+  addCrossMeshPadDST(paths, g.topPad.x, g.topPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_1210_top_pad");
+  addCrossMeshPadDST(paths, g.bottomPad.x, g.bottomPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_1210_bottom_pad");
+  addExternalPadDST(paths, g.gnd.x, g.gnd.y, prefix + "_gnd_external_pad");
+}
+
+function addIntegratedPullupResistorDST(paths, loadX, outputY, prefix="fixed_pullup") {
+  const g = pullupResistorGeometry(loadX, outputY);
+
+  // Do NOT stitch between the two resistor pads.
+  // VCC connects to the top resistor pad, and the bottom resistor pad connects to output.
+  addLinePath(paths, loadX, g.vcc.y, loadX, g.topPad.y - RES1210_PAD_H/2, prefix + "_vcc_to_top_resistor_pad");
+  addLinePath(paths, loadX, g.bottomPad.y + RES1210_PAD_H/2, loadX, outputY, prefix + "_bottom_resistor_pad_to_output");
+
+  addCrossMeshPadDST(paths, g.topPad.x, g.topPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_1210_top_pad");
+  addCrossMeshPadDST(paths, g.bottomPad.x, g.bottomPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_1210_bottom_pad");
+  addExternalPadDST(paths, g.vcc.x, g.vcc.y, prefix + "_vcc_external_pad");
+}
+
+function collectDSTPaths() {
+  const paths = [];
+
+  items.forEach(item => {
+    if (item.type === "transistor") {
+      const g = transistorGeometry(item.x,item.y);
+      addLinePath(paths, g.emitterOuter.x, g.emitterOuter.y, g.emitterInner.x, g.emitterInner.y, "transistor_emitter_8mm");
+      addLinePath(paths, g.collectorInner.x, g.collectorInner.y, g.collectorOuter.x, g.collectorOuter.y, "transistor_collector_8mm");
+      addLinePath(paths, g.baseInner.x, g.baseInner.y, g.baseOuter.x, g.baseOuter.y, "transistor_base_8mm");
+    }
+
+    if (item.type === "and") {
+      const y = item.y;
+      const {channelAX, channelBX} = seriesBranchXs(item.x);
+      const first = branchGeometry(channelAX, y, "same");
+      const second = branchGeometry(channelBX, y, "same");
+      const leftPad = {x:first.emitterEnd.x - EXTPAD_OFFSET, y};
+      const outputNode = {x:second.collectorEnd.x, y};
+      const outPad = {x:outputNode.x + VOUT, y};
+      const baseAPad = gatePadPoint(first);
+      const baseBPad = gatePadPoint(second);
+
+      addBranchDST(paths, channelAX, y, "same", "and_A");
+      addBranchDST(paths, channelBX, y, "same", "and_B");
+      addLinePath(paths, first.collectorEnd.x, y, second.emitterEnd.x, y, "and_series_link");
+      addLinePath(paths, leftPad.x, y, first.emitterEnd.x, y, "and_left_pad_connection");
+      addLinePath(paths, baseAPad.x, baseAPad.y, first.baseOuter.x, first.baseOuter.y, "and_base_A_pad_connection");
+      addLinePath(paths, baseBPad.x, baseBPad.y, second.baseOuter.x, second.baseOuter.y, "and_base_B_pad_connection");
+      addLinePath(paths, outputNode.x, y, outPad.x, y, "and_output_to_pad");
+
+      addExternalPadDST(paths, leftPad.x, leftPad.y, "and_vcc_external_pad");
+      addExternalPadDST(paths, baseAPad.x, baseAPad.y, "and_base_A_external_pad");
+      addExternalPadDST(paths, baseBPad.x, baseBPad.y, "and_base_B_external_pad");
+      addExternalPadDST(paths, outPad.x, outPad.y, "and_output_external_pad");
+      addIntegratedLoadResistorDST(paths, outputNode.x, outputNode.y, "and_output_pulldown_R");
+    }
+
+    if (item.type === "or") {
+      const {topY, bottomY} = parallelBranchYs(item.y);
+      const channelX = item.x;
+      const top = branchGeometry(channelX, topY, "up");
+      const bottom = branchGeometry(channelX, bottomY, "up");
+      const emitterBusX = top.emitterEnd.x;
+      const collectorBusX = top.collectorEnd.x;
+      const leftPad = {x:emitterBusX - EXTPAD_OFFSET, y:item.y};
+      const rightPad = {x:collectorBusX + EXTPAD_OFFSET, y:item.y};
+      const load = downwardLoadSideGeometry(collectorBusX, bottomY);
+
+      addBranchDST(paths, channelX, topY, "up", "or_A_top");
+      addBranchDST(paths, channelX, bottomY, "up", "or_B_bottom");
+      addLinePath(paths, emitterBusX, topY, emitterBusX, bottomY, "or_emitter_bus");
+      addLinePath(paths, collectorBusX, topY, collectorBusX, bottomY, "or_collector_bus");
+      addLinePath(paths, leftPad.x, leftPad.y, emitterBusX, item.y, "or_left_pad_link");
+      addLinePath(paths, collectorBusX, item.y, rightPad.x, rightPad.y, "or_right_pad_link");
+      addLinePath(paths, collectorBusX, bottomY, collectorBusX, load.topPad.y - RES1210_PAD_H/2, "or_load_top_link");
+      addLinePath(paths, collectorBusX, load.bottomPad.y + RES1210_PAD_H/2, collectorBusX, load.gnd.y, "or_load_bottom_link");
+      addLinePath(paths, collectorBusX, load.gnd.y, load.sidePad.x, load.sidePad.y, "or_load_side_pad_link");
+      addExternalPadDST(paths, leftPad.x, leftPad.y, "or_left_pad");
+      addExternalPadDST(paths, rightPad.x, rightPad.y, "or_right_pad");
+      addExternalPadDST(paths, top.baseOuter.x, top.baseOuter.y, "or_baseA_pad");
+      addExternalPadDST(paths, bottom.baseOuter.x, bottom.baseOuter.y, "or_baseB_pad");
+      addCrossMeshPadDST(paths, load.topPad.x, load.topPad.y, RES1210_PAD_W, RES1210_PAD_H, "or_R_top_pad");
+      addCrossMeshPadDST(paths, load.bottomPad.x, load.bottomPad.y, RES1210_PAD_W, RES1210_PAD_H, "or_R_bottom_pad");
+      addExternalPadDST(paths, load.sidePad.x, load.sidePad.y, "or_load_side_pad");
+    }
+
+    if (item.type === "not") {
+      const y = item.y;
+      const channelX = item.x - 30;
+      const t = branchGeometry(channelX, y, "same");
+      const outPad = {x:t.collectorEnd.x + VOUT, y};
+      const gndPad = {x:t.emitterEnd.x - EXTPAD_OFFSET, y};
+      const gatePad = gatePadPoint(t);
+      const loadX = t.collectorEnd.x;
+
+      addBranchDST(paths, channelX, y, "same", "not_transistor");
+      addLinePath(paths, gndPad.x, gndPad.y, t.leftEnd.x, y, "not_gnd_pad_connection");
+      addLinePath(paths, gatePad.x, gatePad.y, t.gateOuter.x, t.gateOuter.y, "not_base_A_pad_connection");
+      addLinePath(paths, t.rightEnd.x, y, outPad.x, y, "not_output_to_vout_pad");
+
+      addExternalPadDST(paths, gndPad.x, gndPad.y, "not_gnd_external_pad");
+      addExternalPadDST(paths, gatePad.x, gatePad.y, "not_base_A_external_pad");
+      addExternalPadDST(paths, outPad.x, outPad.y, "not_vout_external_pad");
+      addIntegratedPullupResistorDST(paths, loadX, y, "not_fixed_pullup");
+    }
+
+  if (item.type === "res1210") {
+      addSMD1210PadOutlinesDST(paths, item.x, item.y);
+    }
+
+    if (item.type === "extpad") {
+      addCrossMeshPadDST(paths, item.x, item.y, EXTPAD_W, EXTPAD_H, "external_pad_6x6");
+    }
+  });
+
+  // User routing wires are running stitches too.
+  routes.forEach(route => {
+    const pts = routePoints(route);
+    if (pts) addPath(paths, pts, "routing_wire");
+  });
+
+  return paths;
+}
+
+function addBranchDST(paths, channelX, y, gateDirection, prefix) {
+  const g = branchGeometry(channelX,y,gateDirection);
+
+  // Physical C terminal is on the left and physical E/output terminal is on the right.
+  // Legacy geometry field names are retained; the PEDOT:PSS C–E gap is intentionally not stitched.
+  addLinePath(paths, g.emitterEnd.x, y, channelX - CHANNEL_GAP/2, y, prefix + "_collector_C_8mm");
+  addLinePath(paths, channelX + CHANNEL_GAP/2, y, g.collectorEnd.x, y, prefix + "_emitter_E_8mm");
+
+  // Base terminal.
+  addLinePath(paths, g.baseInner.x, g.baseInner.y, g.baseOuter.x, g.baseOuter.y, prefix + "_base_8mm");
+}
+
+function addSMD1210PadOutlinesDST(paths, cx, cy) {
+  const topPadY = cy - RES1210_PAD_SPACING/2;
+  const botPadY = cy + RES1210_PAD_SPACING/2;
+
+  addCrossMeshPadDST(paths, cx, topPadY, RES1210_PAD_W, RES1210_PAD_H, "res1210_top_pad");
+  addCrossMeshPadDST(paths, cx, botPadY, RES1210_PAD_W, RES1210_PAD_H, "res1210_bottom_pad");
+}
+
+function cleanConsecutivePoints(points, tolerancePx=0.01) {
+  const cleaned = [];
+  (points || []).forEach(p => {
+    if (!p || !isFinite(p.x) || !isFinite(p.y)) return;
+    const last = cleaned[cleaned.length - 1];
+    if (!last || pointDist(last, p) > tolerancePx) cleaned.push({x:p.x, y:p.y});
+  });
+  return cleaned;
+}
+
+function orderDSTPathsForMinimalTravel(paths) {
+  // Nearest-neighbour ordering and path reversal minimize jump distance.
+  // This changes only travel order; it never sews across disconnected nets.
+  const remaining = (paths || [])
+    .map(path => ({...path, points:cleanConsecutivePoints(path.points)}))
+    .filter(path => path.points.length >= 2);
+
+  const ordered = [];
+  let cursor = {x:0, y:0};
+
+  while (remaining.length) {
+    let bestIndex = 0;
+    let bestReverse = false;
+    let bestDistance = Infinity;
+
+    remaining.forEach((path, index) => {
+      const start = path.points[0];
+      const end = path.points[path.points.length - 1];
+      const startDistance = pointDist(cursor, start);
+      const endDistance = pointDist(cursor, end);
+
+      if (startDistance < bestDistance) {
+        bestDistance = startDistance;
+        bestIndex = index;
+        bestReverse = false;
+      }
+      if (endDistance < bestDistance) {
+        bestDistance = endDistance;
+        bestIndex = index;
+        bestReverse = true;
+      }
+    });
+
+    const chosen = remaining.splice(bestIndex, 1)[0];
+    if (bestReverse) chosen.points.reverse();
+    ordered.push(chosen);
+    cursor = chosen.points[chosen.points.length - 1];
+  }
+
+  return ordered;
+}
+
+function pointToDstRelative(point, originPx) {
+  return {
+    x:pxToDst(point.x - originPx.x),
+    y:pxToDst(-(point.y - originPx.y))
+  };
+}
+
+function appendExactLengthSegment(stitches, fromDst, toDst) {
+  const maxStepDst = STITCH_MM * 10; // 0.75 mm maximum in 0.1 mm DST coordinate units
+  const totalDistance = Math.hypot(toDst.x - fromDst.x, toDst.y - fromDst.y);
+  if (totalDistance < 0.001) return fromDst;
+
+  let steps = Math.max(1, Math.ceil(totalDistance / maxStepDst));
+  let generated = [];
+
+  // Rounding to integer 0.1 mm DST coordinates can slightly increase a step.
+  // Increase the subdivision count until every encoded running stitch stays within the 0.75 mm target after DST rounding.
+  while (true) {
+    generated = [];
+    let previous = fromDst;
+    let valid = true;
+
+    for (let i=1; i<=steps; i++) {
+      const t = i / steps;
+      const next = {
+        x:Math.round(fromDst.x + (toDst.x - fromDst.x) * t),
+        y:Math.round(fromDst.y + (toDst.y - fromDst.y) * t)
+      };
+      if (next.x === previous.x && next.y === previous.y) continue;
+      if (Math.hypot(next.x - previous.x, next.y - previous.y) > maxStepDst + 1e-9) {
+        valid = false;
+        break;
+      }
+      generated.push(next);
+      previous = next;
+    }
+
+    if (valid && generated.length && generated[generated.length - 1].x === toDst.x && generated[generated.length - 1].y === toDst.y) break;
+    steps++;
+  }
+
+  generated.forEach(next => stitches.push({x:next.x, y:next.y, jump:false}));
+  return generated[generated.length - 1] || fromDst;
+}
+
+function appendPathRunningStitches(stitches, points, currentDst, originPx) {
+  const pts = cleanConsecutivePoints(points);
+  if (pts.length < 2) return currentDst;
+
+  const start = pointToDstRelative(pts[0], originPx);
+  if (start.x !== currentDst.x || start.y !== currentDst.y) {
+    stitches.push({x:start.x, y:start.y, jump:true});
+    currentDst = start;
+  }
+
+  for (let i=0; i<pts.length-1; i++) {
+    const end = pointToDstRelative(pts[i+1], originPx);
+    currentDst = appendExactLengthSegment(stitches, currentDst, end);
+  }
+
+  return currentDst;
+}
+
+function pathsToRunningStitches(paths) {
+  const stitches = [];
+  const ordered = orderDSTPathsForMinimalTravel(paths);
+  if (!ordered.length) return stitches;
+
+  // DST coordinates are relative. Start the design at the first stitch so the
+  // machine does not make an unnecessary initial jump from the canvas origin.
+  const originPx = ordered[0].points[0];
+  let currentDst = {x:0, y:0};
+
+  ordered.forEach(path => {
+    currentDst = appendPathRunningStitches(stitches, path.points, currentDst, originPx);
+  });
+  return stitches;
+}
+
+function pathToRunningStitches(path) {
+  return pathsToRunningStitches([path]);
+}
+
+// DST encoding follows the Tajima ternary bit table:
+// byte 1: ±1 and ±9 moves, byte 2: ±3 and ±27 moves, byte 3: ±81 moves + control bits.
+// Byte 3 bit0 and bit1 are always set for synchronization.
+function findBalancedCoefficients(value) {
+  const weights = [81, 27, 9, 3, 1];
+
+  for (let a=-1; a<=1; a++) {
+    for (let b=-1; b<=1; b++) {
+      for (let c=-1; c<=1; c++) {
+        for (let d=-1; d<=1; d++) {
+          for (let e=-1; e<=1; e++) {
+            const coeffs = [a,b,c,d,e];
+            const sum = coeffs.reduce((acc,coef,i) => acc + coef * weights[i], 0);
+            if (sum === value) return coeffs;
+          }
+        }
+      }
+    }
+  }
+
+  throw new Error("DST move cannot be encoded exactly: " + value);
+}
+
+function applyAxisBits(value, axis, bytes) {
+  const coeffs = findBalancedCoefficients(value);
+
+  if (axis === "x") {
+    const posBits = [
+      [2,0x04], // +81
+      [1,0x04], // +27
+      [0,0x04], // +9
+      [1,0x01], // +3
+      [0,0x01]  // +1
+    ];
+    const negBits = [
+      [2,0x08], // -81
+      [1,0x08], // -27
+      [0,0x08], // -9
+      [1,0x02], // -3
+      [0,0x02]  // -1
+    ];
+
+    coeffs.forEach((coef,i) => {
+      if (coef > 0) bytes[posBits[i][0]] |= posBits[i][1];
+      if (coef < 0) bytes[negBits[i][0]] |= negBits[i][1];
+    });
+  }
+
+  if (axis === "y") {
+    const posBits = [
+      [2,0x20], // +81
+      [1,0x20], // +27
+      [0,0x20], // +9
+      [1,0x80], // +3
+      [0,0x80]  // +1
+    ];
+    const negBits = [
+      [2,0x10], // -81
+      [1,0x10], // -27
+      [0,0x10], // -9
+      [1,0x40], // -3
+      [0,0x40]  // -1
+    ];
+
+    coeffs.forEach((coef,i) => {
+      if (coef > 0) bytes[posBits[i][0]] |= posBits[i][1];
+      if (coef < 0) bytes[negBits[i][0]] |= negBits[i][1];
+    });
+  }
+}
+
+function encodeDSTMove(dx, dy, jump=false) {
+  const bytes = [0, 0, 0x03];
+
+  applyAxisBits(dx, "x", bytes);
+  applyAxisBits(dy, "y", bytes);
+
+  if (jump) bytes[2] |= 0x80;
+
+  return bytes;
+}
+
+function addEncodedMove(dst, dx, dy, jump=false) {
+  // DST can encode up to ±121 units per axis in one command.
+  // Split longer path-to-path moves into several jump commands.
+  while (dx !== 0 || dy !== 0) {
+    const sx = Math.max(-121, Math.min(121, dx));
+    const sy = Math.max(-121, Math.min(121, dy));
+
+    dst.push(...encodeDSTMove(sx, sy, jump));
+
+    dx -= sx;
+    dy -= sy;
+  }
+}
+
+// Tajima DST has no universally explicit trim opcode. Most embroidery readers
+// and machines recognize three short jump records that return to the same
+// position as an automatic trim request. This is the same convention used by
+// established embroidery software. It is critical here because the conductive
+// top thread must be cut between electrically isolated stitch islands.
+function addDSTTrimSequence(dst) {
+  dst.push(...encodeDSTMove(-2, -2, true));
+  dst.push(...encodeDSTMove( 4,  4, true));
+  dst.push(...encodeDSTMove(-2, -2, true));
+}
+
+function writeAscii(buffer, offset, text) {
+  const bytes = new TextEncoder().encode(text);
+  for (let i=0; i<bytes.length && offset+i<buffer.length; i++) {
+    buffer[offset+i] = bytes[i];
+  }
+}
+
+function spacePaddedInteger(value, width) {
+  const v = Math.max(0, Math.round(Math.abs(Number(value) || 0)));
+  return String(v).padStart(width, " ");
+}
+
+function extentField(prefix, value) {
+  return prefix + spacePaddedInteger(value, 5) + "\r";
+}
+
+function signedField(prefix, value) {
+  const n = Math.round(Number(value) || 0);
+  const sign = n < 0 ? "-" : "+";
+  return prefix + sign + spacePaddedInteger(n, 5) + "\r";
+}
+
+function makeDSTHeader(moveRecordCount, allAbs) {
+  const header = new Uint8Array(512);
+  header.fill(0x20);
+
+  let minX = 0, maxX = 0, minEncodedY = 0, maxEncodedY = 0;
+  allAbs.forEach(st => {
+    minX = Math.min(minX, st.x);
+    maxX = Math.max(maxX, st.x);
+    minEncodedY = Math.min(minEncodedY, st.y);
+    maxEncodedY = Math.max(maxEncodedY, st.y);
+  });
+
+  const last = allAbs.length ? allAbs[allAbs.length - 1] : {x:0, y:0};
+  const label = "TEXTILE_LOGIC".slice(0, 16).padEnd(16, " ");
+
+  // Tajima header numbers are space padded, not zero padded.
+  // ST includes the final END record for compatibility with strict readers.
+  const recordCountIncludingEnd = Math.max(1, Math.round(moveRecordCount) + 1);
+
+  writeAscii(header, 0,  `LA:${label}\r`);
+  writeAscii(header, 20, `ST:${String(recordCountIncludingEnd).padStart(7, " ")}\r`);
+  writeAscii(header, 31, `CO:${String(0).padStart(3, " ")}\r`);
+  writeAscii(header, 38, extentField("+X:", maxX));
+  writeAscii(header, 47, extentField("-X:", minX));
+
+  // pointToDstRelative() flips canvas Y before encoding. The header extents
+  // must use design-space Y, so encoded minimum maps to +Y and encoded
+  // maximum maps to -Y. The previous exporter had these two fields reversed.
+  writeAscii(header, 56, extentField("+Y:", minEncodedY));
+  writeAscii(header, 65, extentField("-Y:", maxEncodedY));
+
+  writeAscii(header, 74, signedField("AX:", last.x));
+  writeAscii(header, 84, signedField("AY:", last.y));
+  writeAscii(header, 94,  "MX:+    0\r");
+  writeAscii(header, 104, "MY:+    0\r");
+  writeAscii(header, 114, "PD:******\r");
+  header[124] = 0x1A;
+
+  return header;
+}
+
+function validateDSTFileBytes(fileBuffer) {
+  if (!(fileBuffer instanceof Uint8Array)) throw new Error("DST buffer was not created.");
+  if (fileBuffer.length < 518) throw new Error("DST file is too short.");
+  if ((fileBuffer.length - 512 - 3) % 3 !== 0) throw new Error("DST command stream is not aligned to 3-byte records.");
+  const n = fileBuffer.length;
+  if (fileBuffer[n-3] !== 0x00 || fileBuffer[n-2] !== 0x00 || fileBuffer[n-1] !== 0xF3) {
+    throw new Error("DST END command is missing.");
+  }
+  const headerText = new TextDecoder("ascii").decode(fileBuffer.slice(0, 125));
+  if (!headerText.startsWith("LA:") || !headerText.includes("ST:") || !headerText.includes("CO:")) {
+    throw new Error("DST header is invalid.");
+  }
+  return true;
+}
+
+function localPinNet(item, pinName) {
+  const id = item.id;
+
+  if (item.type === "transistor") {
+    pinName = normalizePinName(pinName);
+    if (pinName === "emitter") return id + ":emitter";
+    if (pinName === "collector") return id + ":collector";
+    if (pinName === "base") return id + ":base";
+  }
+
+  if (item.type === "and" || item.type === "or" || item.type === "not") {
+    if (pinName === "vcc") return id + ":vcc";
+    pinName = normalizePinName(pinName);
+    if (pinName === "baseA") return id + ":baseA";
+    if (pinName === "baseB") return id + ":baseB";
+    if (pinName === "vout") return id + ":out";
+    if (pinName === "gnd") return id + ":gnd";
+  }
+
+  if (item.type === "res1210") {
+    if (pinName === "padTop") return id + ":resTop";
+    if (pinName === "padBottom") return id + ":resBottom";
+  }
+
+  if (item.type === "extpad") {
+    if (pinName === "pad") return id + ":pad";
+  }
+
+  return id + ":" + pinName;
+}
+
+function makeUnionFind() {
+  const parent = new Map();
+
+  function add(x) {
+    if (!parent.has(x)) parent.set(x, x);
+  }
+
+  function find(x) {
+    add(x);
+    let p = parent.get(x);
+    if (p !== x) {
+      p = find(p);
+      parent.set(x, p);
+    }
+    return p;
+  }
+
+  function union(a, b) {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent.set(rb, ra);
+  }
+
+  return {add, find, union};
+}
+
+function pinKey(ref) {
+  return ref.itemId + ":" + normalizePinName(ref.pin);
+}
+
+function buildPinNetMap() {
+  const map = new Map();
+
+  items.forEach(item => {
+    getPins(item).forEach(pin => {
+      map.set(pinKey({itemId:item.id, pin:pin.name}), localPinNet(item, pin.name));
+    });
+  });
+
+  return map;
+}
+
+function addOptimizedFeature(features, net, points, name="feature") {
+  if (!points || points.length < 2) return;
+  features.push({net, points:points.map(p => ({x:p.x, y:p.y})), name});
+}
+
+function addOptimizedLine(features, net, x1, y1, x2, y2, name="line") {
+  if (Math.abs(x1-x2) < 0.01 && Math.abs(y1-y2) < 0.01) return;
+  addOptimizedFeature(features, net, [{x:x1,y:y1},{x:x2,y:y2}], name);
+}
+
+function sparseSerpentinePadPoints(cx, cy, w, h) {
+  const inset = Math.min(2, w * 0.12, h * 0.12);
+  const left = cx - w/2 + inset;
+  const right = cx + w/2 - inset;
+  const top = cy - h/2 + inset;
+  const bottom = cy + h/2 - inset;
+  const spacing = PAD_FILL_SPACING;
+
+  const pts = [];
+  let y = top + spacing/2;
+  let dir = 1;
+
+  while (y <= bottom) {
+    if (dir > 0) {
+      pts.push({x:left, y});
+      pts.push({x:right, y});
+    } else {
+      pts.push({x:right, y});
+      pts.push({x:left, y});
+    }
+    y += spacing;
+    dir *= -1;
+  }
+
+  if (pts.length < 2) {
+    pts.push({x:left, y:cy});
+    pts.push({x:right, y:cy});
+  }
+
+  return pts;
+}
+
+function rectOutlinePadPoints(cx, cy, w, h) {
+  // Closed rectangle loop around the pad.
+  // This locks the pad edge before/after sparse fill and matches pad dimensions.
+  const left = cx - w/2;
+  const right = cx + w/2;
+  const top = cy - h/2;
+  const bottom = cy + h/2;
+
+  return [
+    {x:left, y:top},
+    {x:right, y:top},
+    {x:right, y:bottom},
+    {x:left, y:bottom},
+    {x:left, y:top}
+  ];
+}
+
+function addPadOutlineFeature(features, net, cx, cy, w, h, name="pad_outline") {
+  addOptimizedFeature(features, net, rectOutlinePadPoints(cx, cy, w, h), name);
+}
+
+function continuousPadStitchPoints(cx, cy, w, h, anchor=null) {
+  // One uninterrupted pad path. Enter at the electrical connection point,
+  // lock the perimeter, sew the serpentine fill, then return to the entry.
+  // The small connecting stitches stay completely inside the physical pad.
+  const entry = anchor ? {x:anchor.x, y:anchor.y} : {x:cx, y:cy};
+  let fill = sparseSerpentinePadPoints(cx, cy, w, h);
+
+  const left = cx - w/2;
+  const right = cx + w/2;
+  const top = cy - h/2;
+  const bottom = cy + h/2;
+  const corners = [
+    {x:left, y:top},
+    {x:right, y:top},
+    {x:right, y:bottom},
+    {x:left, y:bottom}
+  ];
+
+  let best = {cost:Infinity, cornerIndex:0, reverse:false};
+  corners.forEach((corner, cornerIndex) => {
+    const forwardCost = pointDist(entry, corner) + pointDist(corner, fill[0]);
+    if (forwardCost < best.cost) best = {cost:forwardCost, cornerIndex, reverse:false};
+    const reverseCost = pointDist(entry, corner) + pointDist(corner, fill[fill.length - 1]);
+    if (reverseCost < best.cost) best = {cost:reverseCost, cornerIndex, reverse:true};
+  });
+
+  if (best.reverse) fill = fill.slice().reverse();
+  const c = best.cornerIndex;
+  const outline = [
+    corners[c],
+    corners[(c + 1) % 4],
+    corners[(c + 2) % 4],
+    corners[(c + 3) % 4],
+    corners[c]
+  ];
+
+  return cleanConsecutivePoints([entry, ...outline, ...fill, entry]);
+}
+
+function addSparsePadFeature(features, net, cx, cy, w, h, name="pad", anchor=null) {
+  addOptimizedFeature(
+    features,
+    net,
+    continuousPadStitchPoints(cx, cy, w, h, anchor),
+    name + "_continuous_outline_and_fill"
+  );
+}
+
+function addExternalPadFeature(features, net, cx, cy, name="external_pad") {
+  addSparsePadFeature(features, net, cx, cy, EXTPAD_W, EXTPAD_H, name);
+}
+
+function add1210PadPairFeatures(features, topNet, bottomNet, cx, cy, prefix="res1210") {
+  const topY = cy - RES1210_PAD_SPACING/2;
+  const botY = cy + RES1210_PAD_SPACING/2;
+  addSparsePadFeature(features, topNet, cx, topY, RES1210_PAD_W, RES1210_PAD_H, prefix + "_top_pad");
+  addSparsePadFeature(features, bottomNet, cx, botY, RES1210_PAD_W, RES1210_PAD_H, prefix + "_bottom_pad");
+}
+
+function addBranchFeatures(features, leftNet, rightNet, gateNet, channelX, y, gateDirection, prefix) {
+  const g = branchGeometry(channelX, y, gateDirection);
+  addOptimizedLine(features, leftNet, g.leftEnd.x, y, channelX - CHANNEL_GAP/2, y, prefix + "_left_terminal");
+  addOptimizedLine(features, rightNet, channelX + CHANNEL_GAP/2, y, g.rightEnd.x, y, prefix + "_right_terminal");
+  addOptimizedLine(features, gateNet, g.gateInner.x, g.gateInner.y, g.gateOuter.x, g.gateOuter.y, prefix + "_base_terminal");
+  return g;
+}
+
+function addLoadToGroundFeatures(features, outNet, gndNet, loadX, outputY, prefix="load") {
+  const g = loadResistorGeometry(loadX, outputY);
+  addOptimizedLine(features, outNet, loadX, outputY, loadX, g.topPad.y - RES1210_PAD_H/2, prefix + "_out_to_top_res_pad");
+  addSparsePadFeature(features, outNet, g.topPad.x, g.topPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_top_res_pad", {x:g.topPad.x, y:g.topPad.y - RES1210_PAD_H/2});
+
+  addOptimizedLine(features, gndNet, loadX, g.bottomPad.y + RES1210_PAD_H/2, loadX, g.gnd.y, prefix + "_bottom_res_pad_to_gnd");
+  addSparsePadFeature(features, gndNet, g.bottomPad.x, g.bottomPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_bottom_res_pad", {x:g.bottomPad.x, y:g.bottomPad.y + RES1210_PAD_H/2});
+  addExternalPadFeature(features, gndNet, g.gnd.x, g.gnd.y, prefix + "_gnd_pad");
+}
+
+function addPullupLoadFeatures(features, vccNet, outNet, loadX, outputY, prefix="pullup") {
+  const g = pullupResistorGeometry(loadX, outputY);
+  addOptimizedLine(features, vccNet, loadX, g.vcc.y, loadX, g.topPad.y - RES1210_PAD_H/2, prefix + "_vcc_to_top_res_pad");
+  addExternalPadFeature(features, vccNet, g.vcc.x, g.vcc.y, prefix + "_vcc_pad");
+  addSparsePadFeature(features, vccNet, g.topPad.x, g.topPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_top_res_pad", {x:g.topPad.x, y:g.topPad.y - RES1210_PAD_H/2});
+
+  addOptimizedLine(features, outNet, loadX, g.bottomPad.y + RES1210_PAD_H/2, loadX, outputY, prefix + "_bottom_res_pad_to_out");
+  addSparsePadFeature(features, outNet, g.bottomPad.x, g.bottomPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_bottom_res_pad", {x:g.bottomPad.x, y:g.bottomPad.y + RES1210_PAD_H/2});
+}
+
+function addDownwardLoadWithRightPadFeatures(features, outNet, gndNet, loadX, anchorY, prefix="load_side") {
+  const g = downwardLoadSideGeometry(loadX, anchorY);
+  addOptimizedLine(features, outNet, loadX, anchorY, loadX, g.topPad.y - RES1210_PAD_H/2, prefix + "_out_to_top_res_pad");
+  addSparsePadFeature(features, outNet, g.topPad.x, g.topPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_top_res_pad", {x:g.topPad.x, y:g.topPad.y - RES1210_PAD_H/2});
+  addSparsePadFeature(features, gndNet, g.bottomPad.x, g.bottomPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_bottom_res_pad", {x:g.bottomPad.x, y:g.bottomPad.y + RES1210_PAD_H/2});
+  addOptimizedLine(features, gndNet, loadX, g.bottomPad.y + RES1210_PAD_H/2, loadX, g.gnd.y, prefix + "_bottom_res_to_side_level");
+  addOptimizedLine(features, gndNet, loadX, g.gnd.y, g.sidePad.x, g.sidePad.y, prefix + "_side_pad_link");
+  addExternalPadFeature(features, gndNet, g.sidePad.x, g.sidePad.y, prefix + "_side_pad");
+}
+
+function addUpwardPullupWithLeftPadFeatures(features, vccNet, leftBusNet, loadX, anchorY, prefix="pullup_side") {
+  const g = upwardPullupSideGeometry(loadX, anchorY);
+  addExternalPadFeature(features, vccNet, g.sidePad.x, g.sidePad.y, prefix + "_side_pad");
+  addOptimizedLine(features, vccNet, g.sidePad.x, g.sidePad.y, loadX, g.vcc.y, prefix + "_side_pad_to_vertical");
+  addOptimizedLine(features, vccNet, loadX, g.vcc.y, loadX, g.topPad.y - RES1210_PAD_H/2, prefix + "_vcc_to_top_res_pad");
+  addSparsePadFeature(features, vccNet, g.topPad.x, g.topPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_top_res_pad", {x:g.topPad.x, y:g.topPad.y - RES1210_PAD_H/2});
+  addSparsePadFeature(features, leftBusNet, g.bottomPad.x, g.bottomPad.y, RES1210_PAD_W, RES1210_PAD_H, prefix + "_bottom_res_pad", {x:g.bottomPad.x, y:g.bottomPad.y + RES1210_PAD_H/2});
+  addOptimizedLine(features, leftBusNet, loadX, g.bottomPad.y + RES1210_PAD_H/2, loadX, anchorY, prefix + "_bottom_res_to_bus");
+}
+
+
+function addANDFeatures(features, item) {
+  const y = item.y;
+  const {channelAX, channelBX} = seriesBranchXs(item.x);
+  const vccNet = item.id + ":vcc";
+  const midNet = item.id + ":and_mid";
+  const outNet = item.id + ":out";
+  const gndNet = item.id + ":gnd";
+  const gateANet = item.id + ":baseA";
+  const gateBNet = item.id + ":baseB";
+
+  const first = addBranchFeatures(features, vccNet, midNet, gateANet, channelAX, y, "same", "and_A");
+  const second = addBranchFeatures(features, midNet, outNet, gateBNet, channelBX, y, "same", "and_B");
+  const vccPad = {x:first.emitterEnd.x - EXTPAD_OFFSET, y};
+  const outputNode = {x:second.collectorEnd.x, y};
+  const outPad = {x:outputNode.x + VOUT, y};
+  const gateAPad = gatePadPoint(first);
+  const gateBPad = gatePadPoint(second);
+
+  addOptimizedLine(features, midNet, first.collectorEnd.x, y, second.emitterEnd.x, y, "and_series_link");
+  addOptimizedLine(features, vccNet, vccPad.x, y, first.emitterEnd.x, y, "and_vcc_link");
+  addOptimizedLine(features, gateANet, gateAPad.x, gateAPad.y, first.baseOuter.x, first.baseOuter.y, "and_gateA");
+  addOptimizedLine(features, gateBNet, gateBPad.x, gateBPad.y, second.baseOuter.x, second.baseOuter.y, "and_gateB");
+  addOptimizedLine(features, outNet, outputNode.x, y, outPad.x, y, "and_output");
+  addExternalPadFeature(features, vccNet, vccPad.x, vccPad.y, "and_vcc_pad");
+  addExternalPadFeature(features, gateANet, gateAPad.x, gateAPad.y, "and_gateA_pad");
+  addExternalPadFeature(features, gateBNet, gateBPad.x, gateBPad.y, "and_gateB_pad");
+  addExternalPadFeature(features, outNet, outPad.x, outPad.y, "and_output_pad");
+  addLoadToGroundFeatures(features, outNet, gndNet, outputNode.x, outputNode.y, "and_output_pulldown_R");
+}
+function addORFeatures(features, item) {
+  const {topY, bottomY} = parallelBranchYs(item.y);
+  const channelX = item.x;
+  const leftNet = item.id + ":vcc";
+  const outNet = item.id + ":out";
+  const gndNet = item.id + ":gnd";
+  const baseANet = item.id + ":baseA";
+  const baseBNet = item.id + ":baseB";
+
+  const top = addBranchFeatures(features, leftNet, outNet, baseANet, channelX, topY, "up", "or_top_A");
+  const bottom = addBranchFeatures(features, leftNet, outNet, baseBNet, channelX, bottomY, "up", "or_bottom_B");
+  const emitterBusX = top.emitterEnd.x;
+  const collectorBusX = top.collectorEnd.x;
+  const leftPad = {x:emitterBusX - EXTPAD_OFFSET, y:item.y};
+  const rightPad = {x:collectorBusX + EXTPAD_OFFSET, y:item.y};
+
+  addOptimizedLine(features, leftNet, emitterBusX, topY, emitterBusX, bottomY, "or_emitter_bus");
+  addOptimizedLine(features, outNet, collectorBusX, topY, collectorBusX, bottomY, "or_collector_bus");
+  addOptimizedLine(features, leftNet, leftPad.x, leftPad.y, emitterBusX, item.y, "or_left_pad_link");
+  addOptimizedLine(features, outNet, collectorBusX, item.y, rightPad.x, rightPad.y, "or_right_pad_link");
+
+  addExternalPadFeature(features, leftNet, leftPad.x, leftPad.y, "or_left_pad");
+  addExternalPadFeature(features, outNet, rightPad.x, rightPad.y, "or_right_pad");
+  addExternalPadFeature(features, baseANet, top.baseOuter.x, top.baseOuter.y, "or_baseA_pad");
+  addExternalPadFeature(features, baseBNet, bottom.baseOuter.x, bottom.baseOuter.y, "or_baseB_pad");
+  addDownwardLoadWithRightPadFeatures(features, outNet, gndNet, collectorBusX, bottomY, "or_downward_R");
+}
+
+
+function addNOTFeatures(features, item) {
+  const y = item.y;
+  const channelX = item.x - 30;
+  const vccNet = item.id + ":vcc";
+  const outNet = item.id + ":out";
+  const gndNet = item.id + ":gnd";
+  const baseANet = item.id + ":baseA";
+
+  const t = addBranchFeatures(features, gndNet, outNet, baseANet, channelX, y, "same", "not_transistor");
+  const outPad = {x:t.collectorEnd.x + VOUT, y};
+  const gndPad = {x:t.emitterEnd.x - EXTPAD_OFFSET, y};
+  const gatePad = gatePadPoint(t);
+  const loadX = t.collectorEnd.x;
+
+  addOptimizedLine(features, gndNet, gndPad.x, gndPad.y, t.leftEnd.x, y, "not_gnd_pad_to_emitter");
+  addOptimizedLine(features, baseANet, gatePad.x, gatePad.y, t.gateOuter.x, t.gateOuter.y, "not_baseA_pad_to_base");
+  addOptimizedLine(features, outNet, t.rightEnd.x, y, loadX, y, "not_out_to_pullup_branch");
+  addOptimizedLine(features, outNet, loadX, y, outPad.x, outPad.y, "not_pullup_branch_to_vout");
+
+  addExternalPadFeature(features, gndNet, gndPad.x, gndPad.y, "not_gnd_external_pad");
+  addExternalPadFeature(features, baseANet, gatePad.x, gatePad.y, "not_baseA_external_pad");
+  addExternalPadFeature(features, outNet, outPad.x, outPad.y, "not_vout_external_pad");
+  addPullupLoadFeatures(features, vccNet, outNet, loadX, y, "not_fixed_pullup");
+}
+
+
+function addVerticalBranchFeatures(features, collectorNet, emitterNet, baseNet, channelX, channelY, baseSide, prefix) {
+  const g = verticalBranchGeometry(channelX, channelY, baseSide);
+
+  addOptimizedLine(features, collectorNet, g.collectorEnd.x, g.collectorEnd.y, g.collectorInner.x, g.collectorInner.y, prefix + "_collector_8mm");
+  addOptimizedLine(features, emitterNet, g.emitterInner.x, g.emitterInner.y, g.emitterEnd.x, g.emitterEnd.y, prefix + "_emitter_8mm");
+  addOptimizedLine(features, baseNet, g.baseInner.x, g.baseInner.y, g.baseOuter.x, g.baseOuter.y, prefix + "_base_8mm");
+
+  return g;
+}
+
+function addTransistorFeatures(features, item) {
+  const g = transistorGeometry(item.x, item.y);
+  addOptimizedLine(features, item.id + ":collector", g.cOuter.x, g.cOuter.y, g.cInner.x, g.cInner.y, "transistor_collector_8mm");
+  addOptimizedLine(features, item.id + ":emitter", g.eInner.x, g.eInner.y, g.eOuter.x, g.eOuter.y, "transistor_emitter_8mm");
+  addOptimizedLine(features, item.id + ":base", g.baseInner.x, g.baseInner.y, g.baseOuter.x, g.baseOuter.y, "transistor_base_8mm");
+}
+
+function addItemFeaturesWithRotation(features, item, builder) {
+  const startIndex = features.length;
+  builder();
+  const angle = normalizeRotation(item?.rotation || 0);
+  if (angle === 0) return;
+  for (let i = startIndex; i < features.length; i++) {
+    features[i].points = features[i].points.map(p => rotatePointAround(p, item.x, item.y, angle));
+  }
+}
+
+function collectOptimizedDSTFeatures(uf, pinNetMap) {
+  const features = [];
+
+  items.forEach(item => {
+    addItemFeaturesWithRotation(features, item, () => {
+      if (item.type === "transistor") addTransistorFeatures(features, item);
+      if (item.type === "and") addANDFeatures(features, item);
+      if (item.type === "or") addORFeatures(features, item);
+      if (item.type === "not") addNOTFeatures(features, item);
+      if (item.type === "res1210") add1210PadPairFeatures(features, item.id + ":resTop", item.id + ":resBottom", item.x, item.y, "extra_1210");
+      if (item.type === "extpad") addExternalPadFeature(features, item.id + ":pad", item.x, item.y, "extra_external_pad");
+    });
+  });
+
+  routes.forEach(route => {
+    const startNet = pinNetMap.get(pinKey(route.start));
+    const endNet = pinNetMap.get(pinKey(route.end));
+    const pts = routePoints(route);
+    if (startNet && endNet && pts) {
+      addOptimizedFeature(features, uf.find(startNet), pts, "user_route");
+    }
+  });
+
+  return features;
+}
+
+function pointDist(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function appendOrthogonalConnector(points, from, to) {
+  // Geometry-only export rule:
+  // Never add hidden travel stitches between disconnected features.
+  // If two features do not already touch in the drawing, they stay separate.
+  return;
+}
+
+const PATH_JOIN_TOLERANCE_PX = 0.05 * MM;
+
+function pointsTouch(a, b, tol=PATH_JOIN_TOLERANCE_PX) {
+  return Math.hypot(a.x - b.x, a.y - b.y) <= tol;
+}
+
+function orderFeaturesAsGeometryOnlyPaths(features) {
+  // Reorder/reverse only. Never add hidden travel stitches.
+  // Output is multiple paths when geometry is disconnected.
+  const remaining = features
+    .map(f => f.points.map(p => ({x:p.x, y:p.y})))
+    .filter(p => p.length >= 2);
+
+  const paths = [];
+
+  while (remaining.length) {
+    let current = remaining.shift();
+    let changed = true;
+
+    while (changed) {
+      changed = false;
+
+      for (let i = 0; i < remaining.length; i++) {
+        let next = remaining[i];
+
+        const curStart = current[0];
+        const curEnd = current[current.length - 1];
+        const nextStart = next[0];
+        const nextEnd = next[next.length - 1];
+
+        if (pointsTouch(curEnd, nextStart)) {
+          current.push(...next.slice(1));
+          remaining.splice(i, 1);
+          changed = true;
+          break;
+        }
+
+        if (pointsTouch(curEnd, nextEnd)) {
+          next = next.slice().reverse();
+          current.push(...next.slice(1));
+          remaining.splice(i, 1);
+          changed = true;
+          break;
+        }
+
+        if (pointsTouch(curStart, nextEnd)) {
+          current = next.slice(0, -1).concat(current);
+          remaining.splice(i, 1);
+          changed = true;
+          break;
+        }
+
+        if (pointsTouch(curStart, nextStart)) {
+          next = next.slice().reverse();
+          current = next.slice(0, -1).concat(current);
+          remaining.splice(i, 1);
+          changed = true;
+          break;
+        }
+      }
+    }
+
+    paths.push(current);
+  }
+
+  return paths;
+}
+
+// Legacy wrapper. It now returns separate geometry-only paths, not one fake-connected path.
+function orderFeaturesAsContinuousPath(features) {
+  return orderFeaturesAsGeometryOnlyPaths(features);
+}
+
+function netOrderScore(net) {
+  const s = String(net).toLowerCase();
+  if (s.includes(":vcc")) return 10;
+  if (s.includes(":basea") || s.includes(":base")) return 20;
+  if (s.includes(":baseb")) return 30;
+  if (s.includes(":out") || s.includes("vout")) return 40;
+  if (s.includes(":gnd")) return 50;
+  if (s.includes(":res")) return 60;
+  return 100;
+}
+
+function collectOptimizedDSTPaths() {
+  const uf = makeUnionFind();
+  const pinNetMap = buildPinNetMap();
+
+  pinNetMap.forEach(net => uf.add(net));
+
+  // Merge nets only through user routing wires.
+  // This prevents accidental auto-connection between VCC/GND pins on different gates.
+  routes.forEach(route => {
+    const a = pinNetMap.get(pinKey(route.start));
+    const b = pinNetMap.get(pinKey(route.end));
+    if (a && b) uf.union(a, b);
+  });
+
+  const features = collectOptimizedDSTFeatures(uf, pinNetMap);
+  const groups = new Map();
+
+  features.forEach(feature => {
+    const root = uf.find(feature.net);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push(feature);
+  });
+
+  const paths = [];
+
+  Array.from(groups.entries())
+    .sort((a,b) => netOrderScore(a[0]) - netOrderScore(b[0]) || String(a[0]).localeCompare(String(b[0])))
+    .forEach(([net, group]) => {
+      const geometryPaths = orderFeaturesAsGeometryOnlyPaths(group);
+
+      geometryPaths.forEach((points, idx) => {
+        if (points.length >= 2) {
+          paths.push({
+            name: "geometry_only_net_" + String(net).replace(/[^a-zA-Z0-9_:-]/g, "_") + "_part_" + idx,
+            points
+          });
+        }
+      });
+    });
+
+  return orderDSTPathsForMinimalTravel(paths);
+}
+
+
+function toggleStitchPreview() {
+  showStitchPreviewFlag = !showStitchPreviewFlag;
+  draw();
+}
+
+function drawStitchPreview() {
+  if (!showStitchPreviewFlag) return;
+
+  let paths = [];
+  try {
+    paths = collectOptimizedDSTPaths();
+  } catch (e) {
+    return;
+  }
+
+  ctx.save();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(233,69,96,0.62)";
+  ctx.fillStyle = "rgba(233,69,96,0.9)";
+  ctx.font = "10px Arial";
+
+  paths.forEach((path, i) => {
+    const pts = path.points || [];
+    if (pts.length < 2) return;
+
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let j=1; j<pts.length; j++) ctx.lineTo(pts[j].x, pts[j].y);
+    ctx.stroke();
+
+    if (i < 80) {
+      ctx.beginPath();
+      ctx.arc(pts[0].x, pts[0].y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillText(String(i+1), pts[0].x + 5, pts[0].y - 5);
+    }
+  });
+
+  ctx.restore();
+}
+
+function pathLengthMm(path) {
+  const pts = path.points || [];
+  let total = 0;
+  for (let i=1; i<pts.length; i++) total += Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y) / MM;
+  return total;
+}
+
+function showStitchStats() {
+  const paths = collectOptimizedDSTPaths();
+  let totalMm = 0;
+  let longestMm = 0;
+  paths.forEach(p => {
+    const L = pathLengthMm(p);
+    totalMm += L;
+    longestMm = Math.max(longestMm, L);
+  });
+
+  const stitchSequence = pathsToRunningStitches(paths);
+  const stitchEstimate = stitchSequence.filter(s => !s.jump).length;
+  const jumpCount = stitchSequence.filter(s => s.jump).length;
+  const msg =
+`Geometry-only stitch stats\n\n` +
+`continuous path islands: ${paths.length}\n` +
+`total conductive stitch length: ${totalMm.toFixed(1)} mm\n` +
+`running stitches (0.75 mm maximum): ${stitchEstimate}\n` +
+`required jumps between disconnected islands: ${jumpCount}\n` +
+`longest island: ${longestMm.toFixed(1)} mm\n\n` +
+`Rules enforced:\n` +
+`- nearest-neighbour path order minimizes travel\n` +
+`- connected pad outline and fill are sewn continuously\n` +
+`- no hidden conductive connectors between separate nets\n` +
+`- resistor pad gap stays open\n` +
+`- PEDOT:PSS channel gap stays unstitched\n` +
+`- 0.65 mm / 650 µm fixed collector-emitter channel gap used in all logic gates\n` +
+`- 0.75 mm B/G-to-channel clearance used in all transistor cells`;
+
+  alert(msg);
+}
+
+
+function projectFilePayload() {
+  return {
+    app: "Embroidered Transistor Logic Gates",
+    schema: "embroidered-transistor-project",
+    schema_version: 2,
+    version: "v13-emitter-output-not-and-or-8mm-065mm-075mm-4x4mm-rgap3mm-input-neg010-to-pos100",
+    saved_at: new Date().toISOString(),
+    design_units: {
+      px_per_mm: MM,
+      emitter_terminal_mm: TERMINAL_MM,
+      collector_terminal_mm: TERMINAL_MM,
+      base_terminal_mm: TERMINAL_MM,
+      channel_gap_mm: CHANNEL_GAP_MM,
+      gate_to_channel_clearance_mm: GATE_CHANNEL_CLEARANCE_MM,
+      input_logic_0_v: INPUT_LOGIC_0_V,
+      input_logic_1_v: INPUT_LOGIC_1_V,
+      reported_output_terminal: REPORTED_OUTPUT_TERMINAL,
+      physical_terminal_convention: "left C; right E/output; B/G control",
+      resistor_1210_pad_width_mm: RES1210_PAD_W_MM,
+      resistor_1210_pad_height_mm: RES1210_PAD_H_MM,
+      resistor_1210_inner_gap_mm: RES1210_PAD_INNER_GAP_MM,
+      resistor_1210_pad_center_spacing_mm: RES1210_PAD_CENTER_SPACING_MM,
+      stitch_length_mm: STITCH_MM,
+      pad_fill_spacing_mm: PAD_FILL_SPACING_MM,
+      item_rotation_degrees: "0/90/180/270"
+    },
+    state: {
+      items: items,
+      routes: routes,
+      nextId: nextId,
+      nextRouteId: nextRouteId
+    }
+  };
+}
+
+function saveProjectFile() {
+  try {
+    const payload = projectFilePayload();
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], {type:"application/json;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "embroidered_transistor_logic_project_v11.json";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  } catch (err) {
+    console.error(err);
+    alert("Project save failed: " + (err && err.message ? err.message : String(err)));
+  }
+}
+
+function openProjectFile() {
+  const input = document.getElementById("projectFileInput");
+  if (!input) {
+    alert("Project-file input is missing from this page.");
+    return;
+  }
+  input.value = "";
+  input.click();
+}
+
+const SUPPORTED_PROJECT_ITEM_TYPES = new Set([
+  "transistor", "not", "and", "or", "res1210", "extpad"
+]);
+
+function normalizeImportedItemType(value) {
+  const t = String(value || "").trim().toLowerCase();
+  const aliases = {
+    "embroidered transistor": "transistor",
+    "r1210": "res1210",
+    "r-1210": "res1210",
+    "resistor1210": "res1210",
+    "pad": "extpad",
+    "externalpad": "extpad",
+    "external-pad": "extpad"
+  };
+  return aliases[t] || t;
+}
+
+function finiteProjectNumber(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function findImportedState(parsed) {
+  let value = parsed;
+
+  // Some software saves a JSON string inside a JSON file. Accept one nested layer.
+  if (typeof value === "string") value = JSON.parse(value);
+
+  const candidates = [
+    value && value.state,
+    value && value.project && value.project.state,
+    value && value.project,
+    value
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === "object" && Array.isArray(candidate.items)) {
+      return candidate;
+    }
+  }
+
+  throw new Error("No project state with an items array was found.");
+}
+
+function importProjectState(rawState) {
+  const unsupportedTypes = new Set();
+  const usedIds = new Set();
+  const importedItems = [];
+  let generatedId = 1;
+
+  for (const rawItem of rawState.items) {
+    if (!rawItem || typeof rawItem !== "object") continue;
+
+    const type = normalizeImportedItemType(rawItem.type);
+    if (type === "coupon") continue;
+    if (!SUPPORTED_PROJECT_ITEM_TYPES.has(type)) {
+      unsupportedTypes.add(type || "missing-type");
+      continue;
+    }
+
+    let id = Math.trunc(finiteProjectNumber(rawItem.id, generatedId));
+    if (id < 1 || usedIds.has(id)) {
+      while (usedIds.has(generatedId)) generatedId++;
+      id = generatedId;
+    }
+    usedIds.add(id);
+    generatedId = Math.max(generatedId, id + 1);
+
+    importedItems.push({
+      ...rawItem,
+      id,
+      type,
+      x: finiteProjectNumber(rawItem.x, 100),
+      y: finiteProjectNumber(rawItem.y, 100),
+      rotation: normalizeRotation(rawItem.rotation || 0)
+    });
+  }
+
+  const importedRoutes = [];
+  const rawRoutes = Array.isArray(rawState.routes) ? rawState.routes : [];
+  let generatedRouteId = 1;
+  const usedRouteIds = new Set();
+
+  for (const rawRoute of rawRoutes) {
+    if (!rawRoute || typeof rawRoute !== "object") continue;
+    const startItemId = Math.trunc(finiteProjectNumber(rawRoute.start?.itemId, NaN));
+    const endItemId = Math.trunc(finiteProjectNumber(rawRoute.end?.itemId, NaN));
+    if (!usedIds.has(startItemId) || !usedIds.has(endItemId)) continue;
+
+    const startPin = String(rawRoute.start?.pin || "").trim();
+    const endPin = String(rawRoute.end?.pin || "").trim();
+    if (!startPin || !endPin) continue;
+
+    let id = Math.trunc(finiteProjectNumber(rawRoute.id, generatedRouteId));
+    if (id < 1 || usedRouteIds.has(id)) {
+      while (usedRouteIds.has(generatedRouteId)) generatedRouteId++;
+      id = generatedRouteId;
+    }
+    usedRouteIds.add(id);
+    generatedRouteId = Math.max(generatedRouteId, id + 1);
+
+    importedRoutes.push({
+      id,
+      start: {itemId:startItemId, pin:startPin},
+      end: {itemId:endItemId, pin:endPin}
+    });
+  }
+
+  items = importedItems;
+  routes = importedRoutes;
+  nextId = Math.max(
+    Math.trunc(finiteProjectNumber(rawState.nextId, 1)),
+    importedItems.reduce((m, item) => Math.max(m, item.id + 1), 1)
+  );
+  nextRouteId = Math.max(
+    Math.trunc(finiteProjectNumber(rawState.nextRouteId, 1)),
+    importedRoutes.reduce((m, route) => Math.max(m, route.id + 1), 1)
+  );
+
+  selected = null;
+  routeStart = null;
+  dragging = null;
+  hoverPin = null;
+
+  // Start a clean undo history from the imported project.
+  history = [];
+  historyIndex = -1;
+  if (typeof pushHistory === "function") pushHistory();
+  if (typeof setTool === "function") setTool("select");
+  if (typeof updateInspector === "function") updateInspector();
+  if (typeof draw === "function") draw();
+
+  return {
+    itemCount: importedItems.length,
+    routeCount: importedRoutes.length,
+    unsupportedTypes: Array.from(unsupportedTypes)
+  };
+}
+
+function handleProjectFileOpen(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (/\.dst$/i.test(file.name)) {
+    alert("A DST file is an embroidery output, not an editable project. Open a saved .json project file instead.");
+    event.target.value = "";
+    return;
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    alert("This project file is larger than 10 MB and was not opened.");
+    event.target.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      let text = String(reader.result || "");
+      text = text.replace(/^\uFEFF/, "").trim();
+
+      if (!text) throw new Error("The selected file is empty.");
+      if (text.startsWith("<")) {
+        throw new Error("You selected an HTML application file, not a saved project JSON file.");
+      }
+
+      const parsed = JSON.parse(text);
+      const state = findImportedState(parsed);
+      const result = importProjectState(state);
+
+      let message = `Project opened successfully.\n\nItems: ${result.itemCount}\nRoutes: ${result.routeCount}`;
+      if (result.unsupportedTypes.length) {
+        message += `\n\nRemoved unsupported component types: ${result.unsupportedTypes.join(", ")}.`;
+        message += "\nThis version supports Transistor, NOT, AND, OR, R-1210, and external pads.";
+      }
+      alert(message);
+    } catch (err) {
+      console.error(err);
+      alert(
+        "Could not open the selected project.\n\n" +
+        (err && err.message ? err.message : String(err)) +
+        "\n\nUse Save Project to create an editable JSON file. DST files and HTML files cannot be reopened as projects."
+      );
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.onerror = () => {
+    alert("The browser could not read this file.");
+    event.target.value = "";
+  };
+  reader.readAsText(file, "utf-8");
+}
+
+// Kept for compatibility with older toolbar calls.
+function saveOpenProjectFile() {
+  const action = prompt('Type "save" to download this design, or "open" to load a saved design file.', 'save');
+  if (!action) return;
+  const choice = action.trim().toLowerCase();
+  if (choice.startsWith("o")) openProjectFile();
+  else if (choice.startsWith("s")) saveProjectFile();
+  else alert('Please type "save" or "open".');
+}
+
+
+function exportDST() {
+  try {
+    const paths = collectOptimizedDSTPaths();
+    if (paths.length === 0) {
+      alert("Nothing to export. Place at least one component first.");
+      return;
+    }
+
+    const allAbs = pathsToRunningStitches(paths);
+    if (allAbs.length === 0) {
+      alert("No stitchable paths found.");
+      return;
+    }
+
+    const dst = [];
+    let curX = 0;
+    let curY = 0;
+    let hasSewnStitch = false;
+
+    allAbs.forEach(st => {
+      const isJump = !!st.jump;
+      const dx = st.x - curX;
+      const dy = st.y - curY;
+
+      // Cut the conductive thread before travelling to an electrically
+      // disconnected island. A plain jump would leave a conductive float that
+      // can short two separate nets.
+      if (isJump && hasSewnStitch) addDSTTrimSequence(dst);
+
+      addEncodedMove(dst, dx, dy, isJump);
+      if (!isJump) hasSewnStitch = true;
+      curX = st.x;
+      curY = st.y;
+    });
+
+    const moveRecordCount = Math.floor(dst.length / 3);
+    const header = makeDSTHeader(moveRecordCount, allAbs);
+    const fileBuffer = new Uint8Array(512 + dst.length + 3);
+    fileBuffer.set(header, 0);
+    fileBuffer.set(dst, 512);
+    fileBuffer.set([0x00, 0x00, 0xF3], 512 + dst.length);
+    validateDSTFileBytes(fileBuffer);
+
+    const blob = new Blob([fileBuffer], {type:"application/octet-stream"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "embroidered_transistor_logic_v10.dst";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    console.error("DST export failed:", error);
+    alert("DST export failed: " + (error && error.message ? error.message : String(error)));
+  }
+}
+
+canvas.focus();
+canvas.style.cursor = "copy";
+resizeCanvasToWindow();
+updateCanvasZoom();
+pushHistory();
+updateInspector();
+draw();
+</script>
+</body>
+</html>
