@@ -200,6 +200,39 @@
         .btn-export:hover { background: #2ecc71 !important; }
         .btn-danger { background: #e74c3c !important; color: white; }
 
+        /* Shared value-driven resistor, capacitor, and inductor editor */
+        .passive-dialog { width: min(580px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); padding: 24px; border: 0; border-radius: 12px; box-sizing: border-box; color: var(--text-main); box-shadow: 0 18px 60px rgba(0,0,0,0.25); overflow-y: auto; }
+        .passive-dialog::backdrop { background: rgba(23,33,59,0.6); }
+        .passive-dialog h2 { margin: 0 0 8px; color: var(--brand-blue); font-size: 1.35rem; }
+        .passive-dialog p { margin: 8px 0 14px; }
+        .passive-dialog label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; }
+        .passive-dialog input, .passive-dialog select { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #bdc3c7; border-radius: 6px; font: inherit; background: white; color: var(--text-main); }
+        .passive-dialog input:focus-visible, .passive-dialog select:focus-visible, .passive-dialog button:focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 2px; }
+        .passive-value-row { display: flex; align-items: center; gap: 8px; }
+        .passive-value-row > input { min-width: 0; flex: 1; }
+        .passive-value-row > div { flex: 0 0 84px; }
+        .passive-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+        .passive-area-note { padding: 10px 12px; background: #fff7ed; border-left: 3px solid #e57200; border-radius: 4px; font-size: 0.84rem; color: #713b0f; }
+        .passive-field { margin-bottom: 14px; }
+        .passive-manual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .passive-help { color: #526173; font-size: 0.82rem; }
+        .passive-preview { display: grid; grid-template-columns: 140px 1fr; gap: 16px; padding: 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; align-items: center; }
+        .passive-preview svg { width: 100%; height: 140px; background: white; border-radius: 6px; }
+        .passive-preview dl { margin: 0; font-size: 0.86rem; }
+        .passive-preview dt { color: #526173; }
+        .passive-preview dd { margin: 0 0 6px; font-weight: 600; color: var(--brand-blue); }
+        .passive-error { color: #a12622; font-size: 0.9rem; }
+        .passive-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+        .passive-actions button { font-size: 0.95rem; padding: 10px 16px; }
+        .passive-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .passive-dialog [hidden] { display: none !important; }
+        @media (max-width: 480px) {
+            .passive-dialog { padding: 18px; }
+            .passive-preview { grid-template-columns: 100px 1fr; gap: 10px; }
+            .passive-preview svg { height: 125px; }
+            .passive-manual-grid { grid-template-columns: 1fr; }
+        }
+
         /* --- MODAL STYLES --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -7236,7 +7269,7 @@
                             <div class="component-param"><strong>Textile factors</strong> Stitch density, tension, washing, bending, humidity, and fabric compression can shift the final measured R.</div>
                         </div>
                         <div class="component-note">
-                            <strong>SoCl code relation:</strong> <code>total_length_mm = (R_target / R_L) * 1000</code>. Increasing stitched length increases resistance; using a lower-&Omega;/m thread decreases resistance.
+                            <strong>SoCl code relation:</strong> <code>total_length_mm = (R_target / R_L) * 1000</code>. Enter target resistance or path length in the shared EDA dialog. The meander uses a single circular radius (equal X/Y diameter) and is sized from its centreline length, including leads; terminal fill is excluded from the series-length estimate. The two 1210 connection pads remain 2.50 × 2.50 mm with 4.00 mm centre spacing.
                         </div>
                     </div>
                 </div>
@@ -7266,7 +7299,7 @@
                     <div class="component-model-card">
                         <h3 class="component-model-title">Capacitance model</h3>
                         <p>
-                            Capacitance increases with the number of neighboring finger pairs, finger overlap length, effective conductor width, and substrate relative permittivity. It decreases when the finger spacing increases.
+                            Enter a target capacitance in pF in the EDA tool. SoCl calculates the finger count and length for the same IDC pattern using the existing first-order estimate. Manual finger-count and length entry is also available.
                         </p>
                         <div class="component-equation-box" style="border-left-color: #0d6efd;">
                             <strong>Interdigitated capacitor estimate</strong>
@@ -7278,14 +7311,14 @@
                         </div>
                         <div class="component-parameter-grid">
                             <div class="component-param"><strong>N</strong> Number of interdigitated fingers. More fingers create more adjacent electrode pairs.</div>
-                            <div class="component-param"><strong>L</strong> Finger overlap length in millimeters.</div>
+                            <div class="component-param"><strong>L</strong> Finger length parameter used by the layout estimate, in millimeters.</div>
                             <div class="component-param"><strong>w</strong> Conductive stitch or thread width in millimeters.</div>
                             <div class="component-param"><strong>s</strong> Gap between neighboring fingers in millimeters.</div>
                             <div class="component-param"><strong>&epsilon;<sub>r</sub></strong> Relative permittivity of fabric/substrate region.</div>
                             <div class="component-param"><strong>&epsilon;<sub>0</sub></strong> Vacuum permittivity, 8.854&times;10<sup>-12</sup> F/m.</div>
                         </div>
                         <div class="component-note">
-                            <strong>SoCl calculation check:</strong> when geometry is entered in millimeters and output is pF, use <code>0.008854187817</code>. Using <code>8.854</code> would make the displayed capacitance about 1000&times; too large.
+                            <strong>Value-to-geometry mapping:</strong> <code>L = C_target / [0.008854187817 × εr × ((2w + s) / s) × (N − 1)]</code>. SoCl searches integer finger counts while retaining the IDC comb pattern and side terminals, with a minimum 20 mm finger length. Direct entry accepts pF or nF through 1.4 nF (1,400 pF). Larger layouts can expand the drawing area; this does not change the physical machine hoop size. Connection pads stay at 2.50 × 2.50 mm with 4.00 mm centre spacing (1.50 mm edge gap), independent of the capacitance. Defaults: w = 0.40 mm, s = 0.70 mm, εr = 1.5. This is the existing layout estimate, not a calibrated IDC field model; verify the fabricated capacitance by measurement.
                         </div>
                     </div>
                 </div>
@@ -7335,7 +7368,7 @@
                             <div class="component-param"><strong>&mu;<sub>0</sub></strong> Free-space permeability, 4&pi;&times;10<sup>-7</sup> H/m.</div>
                         </div>
                         <div class="component-note">
-                            <strong>SoCl calculation check:</strong> compute <code>d_avg_m = d_avg_mm / 1000</code>, calculate <code>L_henries</code>, then display <code>L_nH = L_henries * 1e9</code>. More turns and larger average diameter increase inductance, but also increase series resistance and parasitic capacitance.
+                            <strong>SoCl calculation check:</strong> compute <code>d_avg_m = d_avg_mm / 1000</code>, calculate <code>L_henries</code>, then display <code>L_nH = L_henries * 1e9</code>. Enter target inductance in nH or specify turns and inner diameter in the shared EDA dialog. The 1210 connection pads remain 2.50 × 2.50 mm with 4.00 mm centre spacing. The centre pad requires an insulated jumper to terminal 2; it is shown as a dashed guide and is not stitched across the spiral.
                         </div>
                     </div>
                 </div>
@@ -7441,9 +7474,9 @@
                 <button class="tool-btn" data-tool="place_DIP">DIP-8</button>
                 <button class="tool-btn" data-tool="place_DIP14">DIP-14</button>
                 <button class="tool-btn" data-tool="place_PAD">Pad </button>
-                <button class="tool-btn" data-tool="place_EmbR"><i class="fas fa-wave-square"></i> Emb. R</button>
-                <button class="tool-btn" data-tool="place_EmbC"><i class="fas fa-align-justify"></i> Emb. C</button>
-                <button class="tool-btn" data-tool="place_EmbL"> <i class="fas fa-border-all" style="margin-right: 5px;"></i> Emb. Ind</button>
+                <button class="tool-btn" data-tool="place_EmbR" title="Create an embroidered resistor from resistance in Ω"><i class="fas fa-wave-square"></i> Emb. R</button>
+                <button class="tool-btn" data-tool="place_EmbC" title="Create an IDC capacitor in pF or nF, up to 1.4 nF"><i class="fas fa-align-justify"></i> Emb. C</button>
+                <button class="tool-btn" data-tool="place_EmbL" title="Create a spiral inductor from inductance in nH"> <i class="fas fa-border-all" style="margin-right: 5px;"></i> Emb. Ind</button>
                 
                 <div class="eda-separator"></div>
                 <button class="tool-btn" data-tool="route"><i class="fas fa-route"></i> Route</button>
@@ -7457,6 +7490,8 @@
                     <option value="4.0">Grid:  4.0 mm</option>
                     <option value="4.5">Grid:  4.5 mm</option>
                 </select>
+                <button id="btn-fit-area" title="Fit the current design area in the canvas">Fit area</button>
+                <button id="btn-edit-passive" title="Edit the selected embroidered R, C, or L (or double-click it)" disabled>Edit</button>
                 <button id="btn-rotate"><i class="fas fa-sync-alt"></i></button>
                 <button id="btn-delete" class="btn-danger"><i class="fas fa-trash"></i></button>
                 
@@ -7472,6 +7507,73 @@
             <div id="statusbar">Tool: Select | Grid: 1.0mm | Zoom: 8.0x | Press 'R' to swap trace routing direction</div>
         </div>
     </section>
+
+    <dialog id="passive-dialog" class="passive-dialog" aria-labelledby="passive-dialog-title" aria-describedby="passive-intro">
+        <form id="passive-form" novalidate>
+            <h2 id="passive-dialog-title">Create embroidered component</h2>
+            <p id="passive-intro"></p>
+            <div class="passive-field">
+                <label for="passive-mode">Design from</label>
+                <select id="passive-mode">
+                    <option id="passive-mode-target" value="target">Target value</option>
+                    <option id="passive-mode-geometry" value="geometry">Geometry</option>
+                </select>
+            </div>
+            <div id="passive-target-fields" class="passive-field">
+                <label id="passive-target-label" for="passive-target">Target value</label>
+                <div class="passive-value-row">
+                    <input id="passive-target" type="number" inputmode="decimal" step="any" value="10" aria-describedby="passive-range passive-error" autofocus>
+                    <div id="passive-cap-unit-field" hidden>
+                        <label class="passive-sr-only" for="passive-cap-unit">Capacitance unit</label>
+                        <select id="passive-cap-unit"><option value="pF">pF</option><option value="nF">nF</option></select>
+                    </div>
+                </div>
+                <div id="passive-range" class="passive-help"></div>
+            </div>
+            <div id="passive-geometry-fields" hidden>
+                <div class="passive-manual-grid">
+                    <div class="passive-field">
+                        <label id="passive-geometry-a-label" for="passive-geometry-a">Geometry</label>
+                        <input id="passive-geometry-a" type="number" inputmode="decimal" step="any" aria-describedby="passive-error">
+                    </div>
+                    <div id="passive-geometry-b-field" class="passive-field">
+                        <label id="passive-geometry-b-label" for="passive-geometry-b">Length (mm)</label>
+                        <input id="passive-geometry-b" type="number" inputmode="decimal" step="any" aria-describedby="passive-error">
+                    </div>
+                </div>
+            </div>
+            <div id="passive-thread-field" class="passive-field" hidden>
+                <label for="passive-thread">Linear thread resistance (Ω/m)</label>
+                <input id="passive-thread" type="number" inputmode="decimal" step="any" value="300" aria-describedby="passive-error">
+            </div>
+            <div id="passive-area-field" class="passive-field" hidden>
+                <label for="passive-area-mode">Design area</label>
+                <select id="passive-area-mode">
+                    <option value="expand">Expand drawing area when needed</option>
+                    <option value="current">Keep current drawing area</option>
+                </select>
+            </div>
+            <p id="passive-settings" class="passive-help"></p>
+            <div id="passive-preview" class="passive-preview" aria-live="polite">
+                <svg id="passive-preview-svg" role="img" aria-label="Preview of the generated component" preserveAspectRatio="xMidYMid meet"></svg>
+                <dl>
+                    <dt id="passive-estimate-label">Estimated value</dt><dd id="passive-estimate"></dd>
+                    <dt>Calculated geometry</dt><dd id="passive-dimensions"></dd>
+                    <dt>Footprint including terminals</dt><dd id="passive-footprint"></dd>
+                    <dt>Fixed 1210 connection pads</dt><dd id="passive-pads"></dd>
+                </dl>
+            </div>
+            <p id="passive-error" class="passive-error" role="alert" hidden></p>
+            <p id="passive-area-note" class="passive-area-note" role="status" hidden></p>
+            <p id="passive-position-note" class="passive-help" hidden>Placement will move inward to keep the full component inside the board.</p>
+            <p id="passive-jumper-note" class="passive-help" hidden><strong>Inductor connection:</strong> connect the centre pad to terminal 2 with an insulated jumper. The dashed preview line is a guide and is not included in conductive stitch paths.</p>
+            <p id="passive-model-note" class="passive-help"></p>
+            <div class="passive-actions">
+                <button id="passive-cancel" type="button" class="btn-secondary">Cancel</button>
+                <button id="passive-create" type="submit" class="btn-primary">Create component</button>
+            </div>
+        </form>
+    </dialog>
 
     <section id="converter" class="page-section">
         <h2><i class="fas fa-image" style="margin-right: 10px;"></i> Pattern Digitizer: Image to DST</h2>
@@ -7662,13 +7764,14 @@
                         <div style="font-size: 0.86rem; margin-top: 12px; color: var(--text-main);">
                             <strong>Parameters</strong><br>
                             N: number of interdigitated fingers<br>
-                            L: finger overlap length (mm)<br>
+                            L: finger length parameter in the layout estimate (mm)<br>
                             w: conductive stitch/thread width (mm)<br>
                             s: gap between neighboring fingers (mm)<br>
                             &epsilon;<sub>0</sub>: 8.854&times;10<sup>-12</sup> F/m<br>
                             &epsilon;<sub>r</sub>: fabric/substrate relative permittivity<br>
                             <strong>Current defaults in your generator:</strong> w &approx; 0.40 mm, s = 0.70 mm, &epsilon;<sub>r</sub> = 1.5.<br>
                             <strong>Code relation:</strong> use <code>0.008854187817</code> for pF when geometry is in mm.<br>
+                            <strong>Direct value entry:</strong> select Emb. C in the EDA tool, click the board, choose pF or nF, and enter a value up to 1.4 nF. The generator selects the finger count and length for the existing IDC pattern. Manual geometry entry remains available.<br>
                             <strong>Design rule:</strong> larger N and L increase C; larger s decreases C.
                         </div>
                     </div>
@@ -7992,6 +8095,8 @@
             COLORS: { TRACE: "green", PAD_FILL: "goldenrod", PAD_OUTLINE: "darkgoldenrod", BODY_FILL: "khaki", BODY_OUTLINE: "saddlebrown", SELECTED: "deepskyblue", GRID: "#e0e0e0", ROUTING: "purple" }
         };
 
+        const DEFAULT_DESIGN_AREA = Object.freeze({ widthMm: 235, heightMm: 135 });
+
         const FOOTPRINTS = {
             "R1210": { size: [3.2, 1.6], pads: [{n: "1", size: [2.5, 2.5], rel: [-2.0, 0]}, {n: "2", size: [2.5, 2.5], rel: [2.0, 0]}] },
             "C1210": { size: [3.2, 2.5], pads: [{n: "1", size: [2.5, 2.5], rel: [-2.0, 0]}, {n: "2", size: [2.5, 2.5], rel: [2.0, 0]}] },
@@ -8001,6 +8106,283 @@
             "PAD": { size: [8, 8], pads: [{n: "1", size: [8, 8], rel: [0, 0]}]}
         };
 
+        // Shared terminal pair: copied from this app's existing R1210 land pattern.
+        const FIXED_TERMINALS = Object.freeze({
+            width: FOOTPRINTS.R1210.pads[0].size[0], height: FOOTPRINTS.R1210.pads[0].size[1],
+            pitch: FOOTPRINTS.R1210.pads[1].rel[0] - FOOTPRINTS.R1210.pads[0].rel[0],
+            clearance: 2, boardMargin: 1, version: 'fixed-1210-v2'
+        });
+        const IDC_MODEL = Object.freeze({ width: 0.40, spacing: 0.70, permittivity: 1.5, minLength: 20, maxCapacitancePf: 1400, version: 'socl-idc-layout-v1' });
+        const RESISTOR_MODEL = Object.freeze({ pitch: 1, minColumns: 6, minRadiusY: 2 });
+        const INDUCTOR_MODEL = Object.freeze({ width: 0.20, spacing: 0.60, minInner: 4, centerPad: 1.5 });
+        const resistorProfileCache = new Map();
+
+        function formatIdcValue(value) { return value.toLocaleString('en-US', { maximumFractionDigits: 5 }); }
+        function positiveNumber(value, name) {
+            if (!Number.isFinite(value) || value <= 0) throw new Error(`${name} must be a finite number greater than zero.`);
+            return value;
+        }
+        function inwardRange(min, max, unit) {
+            return `${formatIdcValue(Math.ceil(min * 1e5) / 1e5)}–${formatIdcValue(Math.floor(max * 1e5) / 1e5)} ${unit}`;
+        }
+        function makeTerminalPair(cx, cy) {
+            return [-1, 1].map((sign, i) => ({ n: String(i + 1), size: [FIXED_TERMINALS.width, FIXED_TERMINALS.height], rel: [cx + sign * FIXED_TERMINALS.pitch / 2, cy] }));
+        }
+        function fillTerminal(pad) {
+            const [cx, cy] = pad.rel, [w, h] = pad.size;
+            const left = cx - w / 2, top = cy - h / 2;
+            const rows = Math.ceil(h / (CONFIG.DST_STITCH_MM / 2));
+            const path = [[cx, cy], [left, cy], [left, top]];
+            for (let row = 0; row <= rows; row++) {
+                const y = top + h * row / rows;
+                path.push([row % 2 ? left + w : left, y], [row % 2 ? left : left + w, y]);
+            }
+            path.push([cx, top + h], [cx, cy]);
+            return path;
+        }
+        function geometryBounds(paths) {
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            paths.forEach(path => path.forEach(([x, y]) => { minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); }));
+            return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
+        }
+        function finishPassiveGeometry(paths, pads, extra = {}) {
+            const bounds = geometryBounds(paths), cx = (bounds.minX + bounds.maxX) / 2, cy = (bounds.minY + bounds.maxY) / 2;
+            const shift = p => [p[0] - cx, p[1] - cy];
+            const geo = {
+                ...extra, paths: paths.map(path => path.map(shift)),
+                pads: pads.map(p => ({ ...p, rel: shift(p.rel), size: [...p.size] })),
+                snapPoints: pads.map(p => shift(p.rel)),
+                footprint: { width: bounds.width, height: bounds.height }, padStyle: FIXED_TERMINALS.version
+            };
+            if (extra.bodyCircle) geo.bodyCircle = { ...extra.bodyCircle, center: shift(extra.bodyCircle.center) };
+            if (extra.jumper) geo.jumper = { ...extra.jumper, from: shift(extra.jumper.from), to: shift(extra.jumper.to) };
+            return geo;
+        }
+        function estimateIdcCapacitancePf(turns, length, spacing = IDC_MODEL.spacing, permittivity = IDC_MODEL.permittivity) {
+            return ((0.008854187817 * permittivity * (2 * IDC_MODEL.width + spacing) * length) / spacing) * (turns - 1);
+        }
+        function legacyTopPadIdcLayout(turns, length) {
+            const span = (turns - 1) * (IDC_MODEL.width + IDC_MODEL.spacing);
+            const pads = makeTerminalPair(span / 2, -FIXED_TERMINALS.clearance - FIXED_TERMINALS.height / 2);
+            const railX = Math.max(span + FIXED_TERMINALS.clearance, pads[1].rel[0] + FIXED_TERMINALS.width / 2 + FIXED_TERMINALS.clearance);
+            return { span, pads, railX, baseHeight: length + 2 * IDC_MODEL.width + 1.25 };
+        }
+        function buildFixedCapacitor(params) {
+            const { turns, length } = params, g = legacyTopPadIdcLayout(turns, length), pitch = IDC_MODEL.width + IDC_MODEL.spacing;
+            const a = fillTerminal(g.pads[0]), b = fillTerminal(g.pads[1]);
+            a.push([g.pads[0].rel[0], 0], [0, 0]);
+            b.push([g.railX, g.pads[1].rel[1]], [g.railX, g.baseHeight]);
+            for (let i = 0; i < turns; i++) {
+                const x = i * pitch;
+                a.push([x, 0]); if (i % 2 === 0) a.push([x, length], [x, 0]);
+                b.push([x, g.baseHeight]); if (i % 2 !== 0) b.push([x, g.baseHeight - length], [x, g.baseHeight]);
+            }
+            const estimatedCapacitancePf = estimateIdcCapacitancePf(turns, length);
+            return finishPassiveGeometry([a, b], g.pads, { estimatedCapacitancePf, label: `≈ ${formatIdcValue(estimatedCapacitancePf)} pF`, pathNets: [0, 1] });
+        }
+
+        // A rounded meander retains the resistor's circular appearance. Solve its
+        // actual centreline length, including leads; terminal fill is not counted as series length.
+        function resistorProfile(columns) {
+            if (!resistorProfileCache.has(columns)) {
+                const halfSpan = (columns - 1) * RESISTOR_MODEL.pitch / 2, radiusX = columns * RESISTOR_MODEL.pitch / 2;
+                const points = Array.from({ length: columns }, (_, i) => { const x = i * RESISTOR_MODEL.pitch - halfSpan; return { x, f: Math.sqrt(1 - (x / radiusX) ** 2) }; });
+                resistorProfileCache.set(columns, { points, halfSpan, maxF: Math.max(...points.map(p => p.f)), sumF: points.reduce((sum, p) => sum + p.f, 0) });
+            }
+            return resistorProfileCache.get(columns);
+        }
+        function resistorPathLength(columns, radiusY) {
+            const p = resistorProfile(columns);
+            let length = 2 * radiusY * p.sumF;
+            for (let i = 1; i < columns; i++) length += Math.hypot(RESISTOR_MODEL.pitch, radiusY * (p.points[i].f - p.points[i - 1].f));
+            return length + 2 * (p.halfSpan - FIXED_TERMINALS.pitch / 2 + FIXED_TERMINALS.clearance + FIXED_TERMINALS.height / 2 + radiusY * (p.maxF - p.points[0].f));
+        }
+        function maxResistorRadius(columns) {
+            return (CONFIG.BOARD_H_MM - 2 * FIXED_TERMINALS.boardMargin - FIXED_TERMINALS.clearance - FIXED_TERMINALS.height) / (2 * resistorProfile(columns).maxF);
+        }
+        function solveResistorFromResistance(targetResistanceOhm, rho) {
+            positiveNumber(targetResistanceOhm, 'Resistance'); positiveNumber(rho, 'Linear thread resistance');
+            return { ...solveResistorFromLength(targetResistanceOhm / rho * 1000, rho, 'target'), targetResistanceOhm };
+        }
+        function buildFixedResistor(params) {
+            const { columns, radiusY, rho } = params, profile = resistorProfile(columns);
+            const padY = -radiusY * profile.maxF - FIXED_TERMINALS.clearance - FIXED_TERMINALS.height / 2;
+            const pads = makeTerminalPair(0, padY), path = [[...pads[0].rel], [-profile.halfSpan, padY]];
+            profile.points.forEach((p, i) => { const y = radiusY * p.f; path.push([p.x, i % 2 ? y : -y], [p.x, i % 2 ? -y : y]); });
+            path.push([profile.halfSpan, padY], [...pads[1].rel]);
+            let pathLengthMm = 0;
+            for (let i = 1; i < path.length; i++) pathLengthMm += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]);
+            const estimatedResistanceOhm = pathLengthMm * rho / 1000;
+            return finishPassiveGeometry([fillTerminal(pads[0]), path, fillTerminal(pads[1])], pads, { pathLengthMm, estimatedResistanceOhm, label: `≈ ${formatIdcValue(estimatedResistanceOhm)} Ω`, pathNets: [0, 0, 0] });
+        }
+
+        const CIRCULAR_RESISTOR = Object.freeze({ nominalPitch: 1, minPitch: 0.75, maxPitch: 1.5, minColumns: 7, minRadius: 2.5, version: 'circular-meander-v3' });
+        const circularProfileCache = new Map();
+        function circularProfile(columns) {
+            if (!circularProfileCache.has(columns)) {
+                // Odd columns include x=0 and both x=±r, so the body spans exactly
+                // the same diameter in X and Y. Every turn lies on x²+y²=r².
+                const points = Array.from({ length: columns }, (_, i) => { const x = -1 + 2 * i / (columns - 1); return { x, y: Math.sqrt(Math.max(0, 1 - x * x)) }; });
+                let coefficient = 4 + 2 * points.reduce((sum, p) => sum + p.y, 0);
+                for (let i = 1; i < columns; i++) coefficient += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+                circularProfileCache.set(columns, { points, coefficient });
+            }
+            return circularProfileCache.get(columns);
+        }
+        function circularLeadConstant() { return 2 * (FIXED_TERMINALS.clearance + FIXED_TERMINALS.height / 2 - FIXED_TERMINALS.pitch / 2); }
+        function circularResistorBands() {
+            const maxRadius = Math.min(CONFIG.BOARD_W_MM - 2 * FIXED_TERMINALS.boardMargin, CONFIG.BOARD_H_MM - 2 * FIXED_TERMINALS.boardMargin - FIXED_TERMINALS.clearance - FIXED_TERMINALS.height) / 2;
+            const maxColumns = Math.floor(2 * maxRadius / CIRCULAR_RESISTOR.minPitch) + 1;
+            const bands = [];
+            let coveredLength = 0;
+            for (let columns = CIRCULAR_RESISTOR.minColumns; columns <= maxColumns; columns += 2) {
+                const minRadius = Math.max(CIRCULAR_RESISTOR.minRadius, (columns - 1) * CIRCULAR_RESISTOR.minPitch / 2);
+                const upperRadius = Math.min(maxRadius, (columns - 1) * CIRCULAR_RESISTOR.maxPitch / 2);
+                if (minRadius > upperRadius) continue;
+                const k = circularProfile(columns).coefficient;
+                const minLength = minRadius * k + circularLeadConstant(), maxLength = upperRadius * k + circularLeadConstant();
+                // Report one continuous supported range, excluding any isolated band
+                // beyond the current area limit rather than advertising unsolvable values.
+                if (bands.length && minLength > coveredLength + 1e-8) break;
+                bands.push({ columns, minRadius, maxRadius: upperRadius, minLength, maxLength });
+                coveredLength = Math.max(coveredLength, maxLength);
+            }
+            return bands;
+        }
+        function getResistorLimits() {
+            const bands = circularResistorBands();
+            return { maxColumns: bands[bands.length - 1].columns, minLength: bands[0].minLength, maxLength: Math.max(...bands.map(b => b.maxLength)) };
+        }
+        function solveResistorFromLength(lengthMm, rho, designMode = 'geometry') {
+            positiveNumber(lengthMm, 'Path length'); positiveNumber(rho, 'Linear thread resistance');
+            const limits = getResistorLimits();
+            if (lengthMm < limits.minLength || lengthMm > limits.maxLength) throw new Error(`The circular pattern supports ${inwardRange(limits.minLength, limits.maxLength, 'mm')} of path, or ${inwardRange(limits.minLength * rho / 1000, limits.maxLength * rho / 1000, 'Ω')} with this thread and design area.`);
+            let best = null;
+            for (const band of circularResistorBands()) {
+                if (lengthMm < band.minLength - 1e-8 || lengthMm > band.maxLength + 1e-8) continue;
+                const radius = (lengthMm - circularLeadConstant()) / circularProfile(band.columns).coefficient;
+                const columnPitchMm = 2 * radius / (band.columns - 1), score = Math.abs(Math.log(columnPitchMm / CIRCULAR_RESISTOR.nominalPitch));
+                if (!best || score < best.score) best = { columns: band.columns, radius, columnPitchMm, score };
+            }
+            if (!best) throw new Error('No circular meander fits this length in the current design area.');
+            return { designMode, R: lengthMm * rho / 1000, rho, lengthMm, columns: best.columns, radius: best.radius, columnPitchMm: best.columnPitchMm, resistorModel: CIRCULAR_RESISTOR.version, padStyle: FIXED_TERMINALS.version };
+        }
+        function buildCircularResistor(params) {
+            const { radius, columns, rho } = params, profile = circularProfile(columns);
+            const padY = -radius - FIXED_TERMINALS.clearance - FIXED_TERMINALS.height / 2;
+            const pads = makeTerminalPair(0, padY), path = [[...pads[0].rel], [-radius, padY]];
+            profile.points.forEach((p, i) => path.push([radius * p.x, radius * (i % 2 ? p.y : -p.y)], [radius * p.x, radius * (i % 2 ? -p.y : p.y)]));
+            path.push([radius, padY], [...pads[1].rel]);
+            let pathLengthMm = 0;
+            for (let i = 1; i < path.length; i++) pathLengthMm += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]);
+            const estimatedResistanceOhm = pathLengthMm * rho / 1000;
+            return finishPassiveGeometry([fillTerminal(pads[0]), path, fillTerminal(pads[1])], pads, {
+                pathLengthMm, estimatedResistanceOhm, label: `≈ ${formatIdcValue(estimatedResistanceOhm)} Ω`, pathNets: [0, 0, 0],
+                bodyCircle: { center: [0, 0], radius, diameter: 2 * radius, pathIndex: 1, pointStart: 2, pointCount: columns * 2 }
+            });
+        }
+
+        function capacitanceUnitScale(unit) { return unit === 'nF' ? 1000 : 1; }
+        function formatCapacitance(pf) { return pf >= 1000 - 1e-8 ? `${formatIdcValue(pf / 1000)} nF (${formatIdcValue(pf)} pF)` : `${formatIdcValue(pf)} pF`; }
+        function idcLayout(turns, length) {
+            const span = (turns - 1) * (IDC_MODEL.width + IDC_MODEL.spacing), baseHeight = length + 2 * IDC_MODEL.width + 1.25;
+            const padX = span + FIXED_TERMINALS.clearance + FIXED_TERMINALS.width / 2;
+            const pads = [-1, 1].map((sign, i) => ({ n: String(i + 1), size: [FIXED_TERMINALS.width, FIXED_TERMINALS.height], rel: [padX, baseHeight / 2 + sign * FIXED_TERMINALS.pitch / 2] }));
+            return { span, baseHeight, pads };
+        }
+        function getIdcFootprint(turns, length) {
+            const g = idcLayout(turns, length);
+            return { width: g.pads[0].rel[0] + FIXED_TERMINALS.width / 2, height: g.baseHeight };
+        }
+        function getIdcLimits() {
+            // Electrical range is independent of the current drawing/hoop size.
+            // Geometry is never scaled, relabelled, or assigned a fabricated calibration factor.
+            return {
+                maxTurns: Math.floor(IDC_MODEL.maxCapacitancePf / estimateIdcCapacitancePf(2, IDC_MODEL.minLength)) + 1,
+                maxLength: IDC_MODEL.maxCapacitancePf / estimateIdcCapacitancePf(2, 1),
+                minCapacitancePf: estimateIdcCapacitancePf(2, IDC_MODEL.minLength), maxCapacitancePf: IDC_MODEL.maxCapacitancePf
+            };
+        }
+        function getIdcRangeText(unit = 'pF') { const b = getIdcLimits(), scale = capacitanceUnitScale(unit); return inwardRange(b.minCapacitancePf / scale, b.maxCapacitancePf / scale, unit); }
+        function solveIdcFromCapacitance(targetCapacitancePf) {
+            positiveNumber(targetCapacitancePf, 'Capacitance');
+            const limits = getIdcLimits();
+            if (targetCapacitancePf < limits.minCapacitancePf || targetCapacitancePf > limits.maxCapacitancePf) throw new Error(`Enter a capacitance within ${getIdcRangeText()} (maximum 1.4 nF).`);
+            let best = null;
+            const maxTurns = Math.floor(targetCapacitancePf / estimateIdcCapacitancePf(2, IDC_MODEL.minLength)) + 1;
+            for (let turns = 2; turns <= maxTurns; turns++) {
+                const length = targetCapacitancePf / estimateIdcCapacitancePf(turns, 1);
+                if (length < IDC_MODEL.minLength - 1e-9) continue;
+                const f = getIdcFootprint(turns, length);
+                const fits = f.width + 2 * FIXED_TERMINALS.boardMargin <= CONFIG.BOARD_W_MM + 1e-8 && f.height + 2 * FIXED_TERMINALS.boardMargin <= CONFIG.BOARD_H_MM + 1e-8;
+                const score = Math.abs(Math.log(f.width / f.height));
+                if (!best || (fits && !best.fits) || (fits === best.fits && score < best.score)) best = { turns, length: Math.max(IDC_MODEL.minLength, length), score, fits };
+            }
+            if (!best) throw new Error('No IDC geometry is available for this value.');
+            return { designMode: 'target', targetCapacitancePf, turns: best.turns, length: best.length, spacing: IDC_MODEL.spacing, permittivity: IDC_MODEL.permittivity, capacitanceModel: IDC_MODEL.version, idcLayout: 'side-fixed-v3', padStyle: FIXED_TERMINALS.version };
+        }
+        function buildSidePadCapacitor(params) {
+            const { turns, length } = params, g = idcLayout(turns, length), pitch = IDC_MODEL.width + IDC_MODEL.spacing;
+            const a = fillTerminal(g.pads[0]), b = fillTerminal(g.pads[1]);
+            a.push([g.pads[0].rel[0], 0]); b.push([g.pads[1].rel[0], g.baseHeight]);
+            for (let i = 0; i < turns; i++) {
+                const x = i * pitch;
+                a.push([x, 0]); if (i % 2 === 0) a.push([x, length], [x, 0]);
+                b.push([x, g.baseHeight]); if (i % 2 !== 0) b.push([x, g.baseHeight - length], [x, g.baseHeight]);
+            }
+            const estimatedCapacitancePf = estimateIdcCapacitancePf(turns, length);
+            return finishPassiveGeometry([a, b], g.pads, { estimatedCapacitancePf, label: `≈ ${formatCapacitance(estimatedCapacitancePf)}`, pathNets: [0, 1], terminalOrientation: 'vertical' });
+        }
+
+        function inductorOuterDiameter(turns, innerDiameter) { return innerDiameter + 2 * (turns * INDUCTOR_MODEL.width + (turns - 1) * INDUCTOR_MODEL.spacing); }
+        function estimateInductanceNh(turns, innerDiameter) {
+            const outer = inductorOuterDiameter(turns, innerDiameter), average = (outer + innerDiameter) / 2, fill = (outer - innerDiameter) / (outer + innerDiameter);
+            return (2.34 * 4 * Math.PI * 1e-7 * turns ** 2 * average * 1e-3) / (1 + 2.75 * fill) * 1e9;
+        }
+        function getInductorLimits() {
+            const maxOuter = Math.min(CONFIG.BOARD_W_MM - 2 * FIXED_TERMINALS.boardMargin, CONFIG.BOARD_H_MM - 2 * FIXED_TERMINALS.boardMargin - FIXED_TERMINALS.clearance - FIXED_TERMINALS.height);
+            const maxTurns = Math.floor((maxOuter - INDUCTOR_MODEL.minInner + 2 * INDUCTOR_MODEL.spacing) / (2 * (INDUCTOR_MODEL.width + INDUCTOR_MODEL.spacing)));
+            let maxInductanceNh = 0;
+            for (let turns = 1; turns <= maxTurns; turns++) maxInductanceNh = Math.max(maxInductanceNh, estimateInductanceNh(turns, maxOuter - 2 * (turns * INDUCTOR_MODEL.width + (turns - 1) * INDUCTOR_MODEL.spacing)));
+            return { maxOuter, maxTurns, minInductanceNh: estimateInductanceNh(1, INDUCTOR_MODEL.minInner), maxInductanceNh };
+        }
+        function solveInductorFromInductance(targetInductanceNh) {
+            positiveNumber(targetInductanceNh, 'Inductance');
+            const limits = getInductorLimits();
+            if (targetInductanceNh < limits.minInductanceNh || targetInductanceNh > limits.maxInductanceNh) throw new Error(`Enter an inductance within ${inwardRange(limits.minInductanceNh, limits.maxInductanceNh, 'nH')} for this spiral and board.`);
+            let best = null;
+            for (let turns = 1; turns <= limits.maxTurns; turns++) {
+                let low = INDUCTOR_MODEL.minInner, high = limits.maxOuter - 2 * (turns * INDUCTOR_MODEL.width + (turns - 1) * INDUCTOR_MODEL.spacing);
+                if (targetInductanceNh < estimateInductanceNh(turns, low) - 1e-8 || targetInductanceNh > estimateInductanceNh(turns, high) + 1e-8) continue;
+                for (let i = 0; i < 48; i++) { const mid = (low + high) / 2; if (estimateInductanceNh(turns, mid) < targetInductanceNh) low = mid; else high = mid; }
+                const innerDiameter = (low + high) / 2, outerDiameter = inductorOuterDiameter(turns, innerDiameter);
+                if (!best || outerDiameter < best.outerDiameter) best = { turns, innerDiameter, outerDiameter };
+            }
+            if (!best) throw new Error('No spiral geometry fits the requested inductance.');
+            return { designMode: 'target', targetInductanceNh, turns: best.turns, innerDiameter: best.innerDiameter, padStyle: FIXED_TERMINALS.version };
+        }
+        function buildFixedInductor(params) {
+            const { turns, innerDiameter } = params, outer = inductorOuterDiameter(turns, innerDiameter), pitch = INDUCTOR_MODEL.width + INDUCTOR_MODEL.spacing;
+            const padY = outer / 2 + FIXED_TERMINALS.clearance + FIXED_TERMINALS.height / 2, pads = makeTerminalPair(0, padY);
+            const routeY = outer / 2 + FIXED_TERMINALS.clearance / 2;
+            let x = -outer / 2, y = outer / 2, segmentLength = outer;
+            const path = [[...pads[0].rel], [pads[0].rel[0], routeY], [x, routeY], [x, y]];
+            for (let i = 0; i < turns * 4; i++) {
+                if (i > 0 && i % 2 === 0) segmentLength -= pitch;
+                if (i % 4 === 0) y -= segmentLength; else if (i % 4 === 1) x += segmentLength; else if (i % 4 === 2) y += segmentLength; else x -= segmentLength;
+                path.push([x, y]);
+            }
+            path.push([0, 0]);
+            const center = { n: 'center', size: [INDUCTOR_MODEL.centerPad, INDUCTOR_MODEL.centerPad], rel: [0, 0] };
+            const estimatedInductanceNh = estimateInductanceNh(turns, innerDiameter);
+            // The centre-to-terminal-2 bridge must be insulated. It is metadata only,
+            // never a conductive stitch path crossing and shorting the spiral turns.
+            return finishPassiveGeometry([path, fillTerminal(pads[0]), fillTerminal(pads[1]), fillTerminal(center)], [...pads, center], {
+                estimatedInductanceNh, outerDiameterMm: outer, label: `≈ ${formatIdcValue(estimatedInductanceNh)} nH`, pathNets: [0, 0, 1, 0],
+                jumper: { from: [0, 0], to: pads[1].rel, insulated: true, required: true }
+            });
+        }
+
         let state = { 
             components: [], traces: [], tool: 'select', selected: new Set(), clipboard: [], 
             routingStartNode: null, routeMode: 0, mousePx: {x: 0, y: 0}, offsetX: 0, offsetY: 0, scale: CONFIG.SCALE,
@@ -8009,29 +8391,49 @@
 
         document.getElementById('grid-select').addEventListener('change', e => { CONFIG.GRID_MM = parseFloat(e.target.value); updateStatus(); render(); });
 
-        function saveState() {
-            const snapshot = {
+        function currentDesignArea() { return { widthMm: CONFIG.BOARD_W_MM, heightMm: CONFIG.BOARD_H_MM }; }
+        function restoreDesignArea(area) {
+            CONFIG.BOARD_W_MM = Number.isFinite(area?.widthMm) && area.widthMm >= DEFAULT_DESIGN_AREA.widthMm ? area.widthMm : DEFAULT_DESIGN_AREA.widthMm;
+            CONFIG.BOARD_H_MM = Number.isFinite(area?.heightMm) && area.heightMm >= DEFAULT_DESIGN_AREA.heightMm ? area.heightMm : DEFAULT_DESIGN_AREA.heightMm;
+        }
+        function areaExceedsReference(area = currentDesignArea()) { return area.widthMm > DEFAULT_DESIGN_AREA.widthMm + 1e-8 || area.heightMm > DEFAULT_DESIGN_AREA.heightMm + 1e-8; }
+        function captureLayoutSnapshot() {
+            return {
+                board: currentDesignArea(),
                 components: state.components.map(c => ({ id: c.id, ref: c.ref, type: c.type, posMm: [...c.posMm], rotDeg: c.rotDeg, params: JSON.parse(JSON.stringify(c.params)), customGeo: JSON.parse(JSON.stringify(c.customGeo)) })),
-                traces: state.traces.map(t => ({ startNode: {...t.startNode}, endNode: {...t.endNode} }))
+                traces: state.traces.map(t => ({ startNode: { ...t.startNode }, endNode: { ...t.endNode } }))
             };
+        }
+        function fitDesignAreaView() {
+            if (!wrapper.clientWidth || !wrapper.clientHeight) return;
+            state.scale = Math.max(CONFIG.MIN_SCALE, Math.min(CONFIG.MAX_SCALE, (wrapper.clientWidth - 40) / CONFIG.BOARD_W_MM, (wrapper.clientHeight - 40) / CONFIG.BOARD_H_MM));
+            state.offsetX = (wrapper.clientWidth - CONFIG.BOARD_W_MM * state.scale) / 2;
+            state.offsetY = (wrapper.clientHeight - CONFIG.BOARD_H_MM * state.scale) / 2;
+            render();
+        }
+
+        function saveState() {
+            const snapshot = captureLayoutSnapshot();
             state.undoStack.push(snapshot);
             if (state.undoStack.length > 50) state.undoStack.shift(); 
             state.redoStack = []; 
         }
 
         function loadSnapshot(snapshot) {
-            state.components = snapshot.components.map(c => { let comp = new Component(c.ref, c.type, c.posMm, c.params, c.id); comp.rotDeg = c.rotDeg; comp.customGeo = c.customGeo; return comp; });
+            restoreDesignArea(snapshot.board);
+            state.components = snapshot.components.map(c => { let comp = new Component(c.ref, c.type, c.posMm, c.params, c.id, c.customGeo); comp.rotDeg = c.rotDeg; return comp; });
             state.traces = snapshot.traces.map(t => new Trace(t.startNode, t.endNode));
             state.selected.clear(); render();
         }
 
         class Component {
-            constructor(ref, type, posMm, params = {}, id = null) {
+            constructor(ref, type, posMm, params = {}, id = null, savedGeometry = null) {
                 this.id = id || Math.random().toString(36).substring(2, 11);
                 this.ref = ref; this.type = type; this.posMm = [...posMm]; this.rotDeg = 0;
                 this.fp = FOOTPRINTS[type] || null; this.isCustom = type.startsWith("Emb");
-                this.params = params; this.customGeo = null;
-                if (this.isCustom) this.generateCustomGeometry();
+                this.params = JSON.parse(JSON.stringify(params));
+                this.customGeo = savedGeometry ? JSON.parse(JSON.stringify(savedGeometry)) : null;
+                if (this.isCustom && !this.customGeo) this.generateCustomGeometry();
             }
             
             hitTest(wX, wY) {
@@ -8065,6 +8467,13 @@
             }
 
             generateCustomGeometry() {
+                if (this.params.padStyle === FIXED_TERMINALS.version) {
+                    if (this.type === 'EmbR') this.customGeo = this.params.resistorModel === CIRCULAR_RESISTOR.version ? buildCircularResistor(this.params) : buildFixedResistor(this.params);
+                    else if (this.type === 'EmbC') this.customGeo = this.params.idcLayout === 'side-fixed-v3' ? buildSidePadCapacitor(this.params) : buildFixedCapacitor(this.params);
+                    else if (this.type === 'EmbL') this.customGeo = buildFixedInductor(this.params);
+                    return;
+                }
+                // Legacy generator: retained for old layouts lacking stored path data.
                 this.customGeo = { paths: [], label: "", snapPoints: [] }; let raw_paths = [];
                 if (this.type === "EmbR") {
                     let R = this.params.R || 300, rho = this.params.rho || 300; let total_length = (R / rho) * 1000;
@@ -8100,9 +8509,9 @@
                     this.customGeo.snapPoints.push([left_pad_center_x, pad_bottom_y]); this.customGeo.snapPoints.push([right_pad_center_x, pad_bottom_y]);
                 } else if (this.type === "EmbC") {
                     let t = this.params.turns || 12; let l = this.params.length || 20;
-                    let thread_dia = 0.2, spacing = this.params.spacing || 0.70; let permittivity = this.params.permittivity || 1.5;
+                    let spacing = this.params.spacing || IDC_MODEL.spacing; let permittivity = this.params.permittivity || IDC_MODEL.permittivity;
                     let stitch_spacing = CONFIG.DST_STITCH_MM, dense_spacing = stitch_spacing / 2;
-                    let width = 2 * thread_dia; let line_dist = width + spacing;
+                    let width = IDC_MODEL.width; let line_dist = width + spacing;
                     let img_width = (t + 1) * line_dist + 3.0; let lower_base_y = width + 5;
                     let upper_base_y = lower_base_y + l + 2 * width + 1.25; let start_x = (img_width - line_dist * t) / 2;
                     let pad_spacing = 8.0, pad_width = 2.0, pad_height = 2.0;
@@ -8130,8 +8539,9 @@
                         if(i % 2 !== 0) { path_upper.push([x, upper_base_y - l]); path_upper.push([x, upper_base_y]); }
                     }
                     raw_paths.push(path_lower); raw_paths.push(path_upper);
-                    let cap = ((0.008854187817 * permittivity * (2 * width + spacing) * l) / spacing) * (t - 1);
-                    this.customGeo.label = cap.toFixed(2) + " pF";
+                    let cap = estimateIdcCapacitancePf(t, l, spacing, permittivity);
+                    this.customGeo.estimatedCapacitancePf = cap;
+                    this.customGeo.label = '≈ ' + formatIdcValue(cap) + ' pF';
                     this.customGeo.snapPoints.push([pad_x + pad_width/2, pad_y_lower + pad_height/2]);
                     this.customGeo.snapPoints.push([pad_x + pad_width/2, pad_y_upper + pad_height/2]);
                 } else if (this.type === "EmbL") {
@@ -8329,7 +8739,7 @@
             for(let y = startY; y <= maxY; y += CONFIG.GRID_MM) { ctx.moveTo(minX, y); ctx.lineTo(maxX, y); }
             ctx.stroke();
 
-            // UPGRADE: Distinct dark border for the physical 235x135mm Embroidery Hoop/Board bounds
+            // Drawing-area border. Expanded layouts require a compatible physical hoop.
             ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 2 / state.scale; 
             ctx.strokeRect(0, 0, CONFIG.BOARD_W_MM, CONFIG.BOARD_H_MM);
 
@@ -8355,6 +8765,212 @@
 
         let isPanning = false; let panStart = {x:0, y:0}; let draggingComp = null; let hasMoved = false;
 
+        const passiveDialog = document.getElementById('passive-dialog');
+        const passiveForm = document.getElementById('passive-form');
+        const PASSIVE_EDITORS = {
+            EmbR: { name: 'resistor', title: 'embroidered resistor', quantity: 'resistance', unit: 'Ω', target: 300, a: 1000, b: 0, aLabel: 'Path length (mm)', bLabel: '', geometry: 'Path length', intro: 'Enter a resistance in Ω. The conductive path is sized for your thread, with fixed connection pads.', settings: 'Circular meander with equal X/Y diameter. Column pitch stays near 1.00 mm and is shown below. The path estimate includes leads and excludes terminal fill.', note: 'This uses the linear thread-resistance model. Thread, stitch contacts, and pads affect the fabricated resistance; verify it by measurement.' },
+            EmbC: { name: 'capacitor', title: 'IDC capacitor', quantity: 'capacitance', unit: 'pF', target: 10, a: 12, b: 20, aLabel: 'Number of fingers', bLabel: 'Finger length (mm)', geometry: 'Finger count and length', intro: 'Enter a capacitance in pF or nF, up to 1.4 nF (1,400 pF). The interdigitated comb pattern is retained, with fixed pads on the right.', settings: 'Stitch width 0.40 mm · finger gap 0.70 mm · relative permittivity 1.5. Minimum finger length: 20 mm.', note: 'This uses the existing first-order layout estimate, not a fit to measured samples. A larger target may require a larger hoop. Verify the fabricated capacitance with your textile and stitching.' },
+            EmbL: { name: 'inductor', title: 'spiral inductor', quantity: 'inductance', unit: 'nH', target: 1000, a: 5, b: 4, aLabel: 'Number of turns', bLabel: 'Inner diameter (mm)', geometry: 'Turn count and inner diameter', intro: 'Enter an inductance in nH. The turn count and inner diameter are calculated for the square spiral, with fixed connection pads.', settings: 'Trace width 0.20 mm · turn gap 0.60 mm · minimum inner diameter 4.00 mm. 1,000 nH = 1 µH.', note: 'This uses the existing modified Wheeler estimate for the spiral. Leads, the jumper, and parasitic effects can change the measured inductance.' }
+        };
+        let pendingPassivePlacement = null;
+        let passiveCapacitanceUnit = 'pF';
+
+        function syncCapacitanceUnitLabels() {
+            if (pendingPassivePlacement?.type !== 'EmbC') return;
+            document.getElementById('passive-target-label').textContent = `Target capacitance (${passiveCapacitanceUnit})`;
+            document.getElementById('passive-mode-target').textContent = 'Target capacitance (pF or nF)';
+        }
+
+        function readPassiveDesign() {
+            const { type } = pendingPassivePlacement, targetMode = document.getElementById('passive-mode').value === 'target';
+            const rawTarget = document.getElementById('passive-target').valueAsNumber;
+            const target = type === 'EmbC' ? rawTarget * capacitanceUnitScale(passiveCapacitanceUnit) : rawTarget;
+            const a = document.getElementById('passive-geometry-a').valueAsNumber, b = document.getElementById('passive-geometry-b').valueAsNumber;
+            if (type === 'EmbR') {
+                const rho = document.getElementById('passive-thread').valueAsNumber;
+                return targetMode ? solveResistorFromResistance(target, rho) : solveResistorFromLength(a, rho);
+            }
+            if (type === 'EmbC') {
+                if (targetMode) return { ...solveIdcFromCapacitance(target), capacitanceUnit: passiveCapacitanceUnit };
+                const limits = getIdcLimits();
+                if (!Number.isInteger(a) || a < 2 || a > limits.maxTurns) throw new Error(`Enter a whole number of fingers from 2 to ${limits.maxTurns}.`);
+                if (!Number.isFinite(b) || b < IDC_MODEL.minLength || b > limits.maxLength) throw new Error(`Enter a finger length from ${IDC_MODEL.minLength} to ${formatIdcValue(limits.maxLength)} mm.`);
+                const estimated = estimateIdcCapacitancePf(a, b);
+                if (estimated > IDC_MODEL.maxCapacitancePf + 1e-8) throw new Error(`These dimensions estimate ${formatCapacitance(estimated)}. Reduce finger count or length to stay within 1.4 nF.`);
+                return { designMode: 'geometry', turns: a, length: b, spacing: IDC_MODEL.spacing, permittivity: IDC_MODEL.permittivity, capacitanceModel: IDC_MODEL.version, capacitanceUnit: passiveCapacitanceUnit, idcLayout: 'side-fixed-v3', padStyle: FIXED_TERMINALS.version };
+            }
+            if (targetMode) return solveInductorFromInductance(target);
+            const limits = getInductorLimits();
+            if (!Number.isInteger(a) || a < 1 || a > limits.maxTurns) throw new Error(`Enter a whole number of turns from 1 to ${limits.maxTurns}.`);
+            const maxInner = limits.maxOuter - 2 * (a * INDUCTOR_MODEL.width + (a - 1) * INDUCTOR_MODEL.spacing);
+            if (!Number.isFinite(b) || b < INDUCTOR_MODEL.minInner || b > maxInner) throw new Error(`For ${a} turns, enter an inner diameter from ${INDUCTOR_MODEL.minInner} to ${formatIdcValue(maxInner)} mm.`);
+            return { designMode: 'geometry', turns: a, innerDiameter: b, padStyle: FIXED_TERMINALS.version };
+        }
+        function fitPassivePlacement(component) {
+            let { width, height } = geometryBounds(component.customGeo.paths);
+            if (component.rotDeg % 180 !== 0) [width, height] = [height, width];
+            const margin = FIXED_TERMINALS.boardMargin, area = currentDesignArea();
+            const exceeds = width + 2 * margin > area.widthMm + 1e-8 || height + 2 * margin > area.heightMm + 1e-8;
+            if (exceeds) {
+                const required = { widthMm: Math.max(area.widthMm, Math.ceil((width + 2 * margin) / 5) * 5), heightMm: Math.max(area.heightMm, Math.ceil((height + 2 * margin) / 5) * 5) };
+                if (component.type !== 'EmbC' || document.getElementById('passive-area-mode').value !== 'expand') throw new Error(`This geometry needs a ${required.widthMm} × ${required.heightMm} mm drawing area at this rotation.${component.type === 'EmbC' ? ' Choose “Expand drawing area when needed” and use a compatible hoop, or reduce the value.' : ' Reduce the value or dimensions.'}`);
+                area.widthMm = required.widthMm; area.heightMm = required.heightMm;
+            }
+            // This proposal does not mutate the active layout until Create/Apply.
+            component.designArea = area;
+            return [Math.max(width / 2 + margin, Math.min(area.widthMm - width / 2 - margin, pendingPassivePlacement.posMm[0])), Math.max(height / 2 + margin, Math.min(area.heightMm - height / 2 - margin, pendingPassivePlacement.posMm[1]))];
+        }
+        function passiveRangeText(type) {
+            if (type === 'EmbC') return `Supported range: ${getIdcRangeText(passiveCapacitanceUnit)}. 1 nF = 1,000 pF; maximum 1.4 nF = 1,400 pF.`;
+            if (type === 'EmbL') { const b = getInductorLimits(); return `Supported range: ${inwardRange(b.minInductanceNh, b.maxInductanceNh, 'nH')} with the current spiral and board.`; }
+            const rho = document.getElementById('passive-thread').valueAsNumber, b = getResistorLimits();
+            return Number.isFinite(rho) && rho > 0 ? `Supported range: ${inwardRange(b.minLength * rho / 1000, b.maxLength * rho / 1000, 'Ω')} with this thread and board.` : 'Enter the linear resistance of your thread in Ω/m.';
+        }
+        function drawPassivePreview(component) {
+            const geo = component.customGeo, bounds = geometryBounds(geo.paths), svg = document.getElementById('passive-preview-svg');
+            svg.setAttribute('viewBox', `${bounds.minX - 2} ${bounds.minY - 2} ${bounds.width + 4} ${bounds.height + 4}`);
+            svg.setAttribute('aria-label', `${PASSIVE_EDITORS[component.type].title} with fixed 1210 connection pads`);
+            svg.replaceChildren();
+            geo.paths.forEach((points, index) => {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                path.setAttribute('points', points.map(p => p.map(v => v.toFixed(5)).join(',')).join(' '));
+                path.setAttribute('fill', 'none'); path.setAttribute('stroke', geo.pathNets?.[index] === 1 ? '#e57200' : '#1d4ed8');
+                path.setAttribute('stroke-width', '1.3'); path.setAttribute('vector-effect', 'non-scaling-stroke'); svg.appendChild(path);
+            });
+            // Draw physical pad rectangles separately so their fixed dimensions stay visible.
+            geo.pads.forEach(pad => {
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', pad.rel[0] - pad.size[0] / 2); rect.setAttribute('y', pad.rel[1] - pad.size[1] / 2);
+                rect.setAttribute('width', pad.size[0]); rect.setAttribute('height', pad.size[1]);
+                rect.setAttribute('fill', pad.n === '2' && component.type !== 'EmbR' ? '#e57200' : '#1d4ed8'); svg.appendChild(rect);
+            });
+            if (geo.jumper) {
+                const bridge = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                bridge.setAttribute('x1', geo.jumper.from[0]); bridge.setAttribute('y1', geo.jumper.from[1]);
+                bridge.setAttribute('x2', geo.jumper.to[0]); bridge.setAttribute('y2', geo.jumper.to[1]);
+                bridge.setAttribute('stroke', '#a33e00'); bridge.setAttribute('stroke-width', '1.2');
+                bridge.setAttribute('stroke-dasharray', '4 3'); bridge.setAttribute('vector-effect', 'non-scaling-stroke'); svg.appendChild(bridge);
+            }
+        }
+        function updatePassivePreview() {
+            if (!pendingPassivePlacement) return null;
+            const { type } = pendingPassivePlacement, spec = PASSIVE_EDITORS[type];
+            const targetMode = document.getElementById('passive-mode').value === 'target';
+            document.getElementById('passive-target-fields').hidden = !targetMode;
+            document.getElementById('passive-geometry-fields').hidden = targetMode;
+            document.getElementById('passive-target').disabled = !targetMode;
+            document.getElementById('passive-cap-unit').disabled = !targetMode || type !== 'EmbC';
+            document.getElementById('passive-geometry-a').disabled = targetMode;
+            document.getElementById('passive-geometry-b').disabled = targetMode || type === 'EmbR';
+            document.getElementById('passive-thread').disabled = type !== 'EmbR';
+            document.getElementById('passive-range').textContent = passiveRangeText(type);
+            const error = document.getElementById('passive-error'), preview = document.getElementById('passive-preview'), submit = document.getElementById('passive-create');
+            try {
+                const params = readPassiveDesign();
+                const component = new Component(pendingPassivePlacement.ref, type, pendingPassivePlacement.posMm, params, pendingPassivePlacement.id);
+                component.rotDeg = pendingPassivePlacement.rotDeg;
+                component.posMm = fitPassivePlacement(component);
+                const geo = component.customGeo;
+                drawPassivePreview(component);
+                document.getElementById('passive-estimate').textContent = type === 'EmbC' && passiveCapacitanceUnit === 'nF' ? `≈ ${formatIdcValue(geo.estimatedCapacitancePf / 1000)} nF (${formatIdcValue(geo.estimatedCapacitancePf)} pF)` : geo.label;
+                let dimensions;
+                if (type === 'EmbR') dimensions = `Ø ${(params.radius * 2).toFixed(2)} mm circular body · ${params.columns} columns · ${params.columnPitchMm.toFixed(3)} mm pitch · ${formatIdcValue(geo.pathLengthMm)} mm path`;
+                else if (type === 'EmbC') dimensions = `${params.turns} fingers × ${params.length.toFixed(2)} mm`;
+                else dimensions = `${params.turns} turns · ${params.innerDiameter.toFixed(2)} mm inner · ${geo.outerDiameterMm.toFixed(2)} mm outer`;
+                document.getElementById('passive-dimensions').textContent = dimensions;
+                document.getElementById('passive-footprint').textContent = `${geo.footprint.width.toFixed(2)} × ${geo.footprint.height.toFixed(2)} mm`;
+                document.getElementById('passive-pads').textContent = `${FIXED_TERMINALS.width.toFixed(2)} × ${FIXED_TERMINALS.height.toFixed(2)} mm each · ${(FIXED_TERMINALS.pitch - FIXED_TERMINALS.width).toFixed(2)} mm edge gap · ${FIXED_TERMINALS.pitch.toFixed(2)} mm centres`;
+                const areaNote = document.getElementById('passive-area-note');
+                const expandsArea = component.designArea.widthMm > CONFIG.BOARD_W_MM + 1e-8 || component.designArea.heightMm > CONFIG.BOARD_H_MM + 1e-8;
+                areaNote.hidden = !areaExceedsReference(component.designArea);
+                areaNote.textContent = `${expandsArea ? 'Creating this component expands' : 'This layout uses'} the drawing area to ${component.designArea.widthMm} × ${component.designArea.heightMm} mm. This exceeds the original ${DEFAULT_DESIGN_AREA.widthMm} × ${DEFAULT_DESIGN_AREA.heightMm} mm reference hoop; a compatible larger hoop is required for fabrication.`;
+                document.getElementById('passive-position-note').hidden = component.posMm.every((value, i) => Math.abs(value - pendingPassivePlacement.posMm[i]) < 1e-8);
+                error.hidden = true; error.textContent = ''; preview.hidden = false; submit.disabled = false;
+                ['passive-target', 'passive-geometry-a', 'passive-geometry-b', 'passive-thread'].forEach(id => document.getElementById(id).removeAttribute('aria-invalid'));
+                return component;
+            } catch (err) {
+                error.textContent = err.message; error.hidden = false; preview.hidden = true; submit.disabled = true;
+                document.getElementById('passive-position-note').hidden = true;
+                document.getElementById('passive-area-note').hidden = true;
+                return null;
+            }
+        }
+        function openPassiveDialog(type, ref, posMm, existing = null) {
+            const spec = PASSIVE_EDITORS[type], p = existing?.params || {};
+            pendingPassivePlacement = { type, ref, posMm: [...posMm], id: existing?.id || null, rotDeg: existing?.rotDeg || 0 };
+            document.getElementById('passive-dialog-title').textContent = `${existing ? 'Edit' : 'Create'} ${spec.title}${existing ? ` ${ref}` : ''}`;
+            document.getElementById('passive-intro').textContent = spec.intro;
+            document.getElementById('passive-mode-target').textContent = `Target ${spec.quantity} (${spec.unit})`;
+            document.getElementById('passive-mode-geometry').textContent = spec.geometry;
+            document.getElementById('passive-target-label').textContent = `Target ${spec.quantity} (${spec.unit})`;
+            document.getElementById('passive-estimate-label').textContent = `Estimated ${spec.quantity}`;
+            document.getElementById('passive-geometry-a-label').textContent = spec.aLabel;
+            document.getElementById('passive-geometry-b-label').textContent = spec.bLabel;
+            document.getElementById('passive-geometry-b-field').hidden = type === 'EmbR';
+            document.getElementById('passive-geometry-a').step = type === 'EmbR' ? 'any' : '1';
+            document.getElementById('passive-thread-field').hidden = type !== 'EmbR';
+            document.getElementById('passive-cap-unit-field').hidden = type !== 'EmbC';
+            document.getElementById('passive-area-field').hidden = type !== 'EmbC';
+            document.getElementById('passive-area-mode').value = 'expand';
+            document.getElementById('passive-jumper-note').hidden = type !== 'EmbL';
+            document.getElementById('passive-settings').textContent = spec.settings;
+            document.getElementById('passive-model-note').textContent = spec.note;
+            document.getElementById('passive-create').textContent = existing ? 'Apply changes' : `Create ${spec.name}`;
+            document.getElementById('passive-mode').value = p.designMode || (existing && type !== 'EmbR' ? 'geometry' : 'target');
+            document.getElementById('passive-thread').value = p.rho ?? 300;
+            let target = spec.target, a = spec.a, b = spec.b;
+            if (existing && type === 'EmbR') { target = p.targetResistanceOhm ?? p.R ?? 300; a = p.lengthMm ?? (p.R || 300) / (p.rho || 300) * 1000; }
+            if (existing && type === 'EmbC') { a = p.turns ?? 12; b = p.length ?? 20; target = p.targetCapacitancePf ?? estimateIdcCapacitancePf(a, b); }
+            if (existing && type === 'EmbL') { a = p.turns ?? 5; b = p.innerDiameter ?? 4; target = p.targetInductanceNh ?? estimateInductanceNh(a, b); }
+            passiveCapacitanceUnit = type === 'EmbC' ? (p.capacitanceUnit || (target >= 1000 ? 'nF' : 'pF')) : 'pF';
+            document.getElementById('passive-cap-unit').value = passiveCapacitanceUnit;
+            document.getElementById('passive-target').value = type === 'EmbC' ? target / capacitanceUnitScale(passiveCapacitanceUnit) : target;
+            syncCapacitanceUnitLabels();
+            document.getElementById('passive-geometry-a').value = a;
+            document.getElementById('passive-geometry-b').value = b;
+            updatePassivePreview(); passiveDialog.showModal();
+            const focus = document.getElementById(document.getElementById('passive-mode').value === 'target' ? 'passive-target' : 'passive-geometry-a');
+            focus.focus(); focus.select();
+        }
+        passiveForm.addEventListener('input', event => { if (event.target.id !== 'passive-cap-unit') updatePassivePreview(); });
+        document.getElementById('passive-cap-unit').addEventListener('change', () => {
+            const input = document.getElementById('passive-target');
+            const pf = input.valueAsNumber * capacitanceUnitScale(passiveCapacitanceUnit);
+            passiveCapacitanceUnit = document.getElementById('passive-cap-unit').value;
+            if (Number.isFinite(pf)) input.value = Number((pf / capacitanceUnitScale(passiveCapacitanceUnit)).toPrecision(15));
+            syncCapacitanceUnitLabels(); updatePassivePreview();
+        });
+        document.getElementById('passive-area-mode').addEventListener('change', updatePassivePreview);
+        document.getElementById('passive-mode').addEventListener('change', updatePassivePreview);
+        document.getElementById('passive-cancel').addEventListener('click', () => passiveDialog.close());
+        passiveDialog.addEventListener('close', () => { pendingPassivePlacement = null; document.querySelector('[data-tool="select"]').click(); render(); });
+        passiveForm.addEventListener('submit', event => {
+            event.preventDefault();
+            if (!pendingPassivePlacement) return;
+            const component = updatePassivePreview(); if (!component) return;
+            const index = pendingPassivePlacement.id ? state.components.findIndex(c => c.id === pendingPassivePlacement.id) : -1;
+            saveState();
+            const expandsArea = component.designArea.widthMm > CONFIG.BOARD_W_MM || component.designArea.heightMm > CONFIG.BOARD_H_MM;
+            restoreDesignArea(component.designArea);
+            if (index >= 0) state.components[index] = component; else state.components.push(component);
+            if (expandsArea) fitDesignAreaView();
+            state.selected.clear(); state.selected.add(component);
+            logSystemEvent(index >= 0 ? 'EDIT_COMPONENT' : 'PLACE_COMPONENT', { componentType: component.type, parameters: component.params, x_pos: component.posMm[0], y_pos: component.posMm[1] });
+            passiveDialog.close();
+        });
+        document.getElementById('btn-fit-area').addEventListener('click', fitDesignAreaView);
+        document.getElementById('btn-edit-passive').addEventListener('click', () => {
+            if (state.selected.size !== 1) return;
+            const component = [...state.selected][0];
+            if (PASSIVE_EDITORS[component.type]) openPassiveDialog(component.type, component.ref, component.posMm, component);
+        });
+        canvas.addEventListener('dblclick', event => {
+            if (state.tool !== 'select' || passiveDialog.open) return;
+            const rect = canvas.getBoundingClientRect(), x = (event.clientX - rect.left - state.offsetX) / state.scale, y = (event.clientY - rect.top - state.offsetY) / state.scale;
+            const component = [...state.components].reverse().find(c => c.hitTest(x, y));
+            if (component && PASSIVE_EDITORS[component.type]) openPassiveDialog(component.type, component.ref, component.posMm, component);
+        });
+
         canvas.addEventListener('mousedown', e => {
             if (e.button === 1 || (e.button === 0 && e.altKey)) { isPanning = true; panStart = { x: e.clientX - state.offsetX, y: e.clientY - state.offsetY }; return; }
             const rect = canvas.getBoundingClientRect(); const wX = (e.clientX - rect.left - state.offsetX) / state.scale; const wY = (e.clientY - rect.top - state.offsetY) / state.scale;
@@ -8364,41 +8980,17 @@
                 state.selected.clear(); draggingComp = null; hasMoved = false;
                 for (let c of [...state.components].reverse()) { if (c.hitTest(wX, wY)) { state.selected.add(c); draggingComp = c; break; } }
             } else if (state.tool.startsWith('place_')) {
-                saveState(); const typeStr = state.tool.replace('place_', '');
+                const typeStr = state.tool.replace('place_', '');
                 let prefix = "U"; if (typeStr === "EmbL") prefix = "L"; else if (typeStr.includes("R")) prefix = "R"; else if (typeStr.includes("C")) prefix = "C"; else if (typeStr.includes("PAD")) prefix = "P";
                 let num = 1; while (state.components.find(c => c.ref === `${prefix}${num}`)) num++;
                 let params = {};
-                
-                if (typeStr === 'EmbR') {
-                    let uR = prompt("Enter Resistance (Ohms):", "300"); 
-                    let uRho = prompt("Enter Linear Thread Resistance (Ohms/m):", "300");
-                    if (uR && uRho) { 
-                        params.R = parseFloat(uR); 
-                        params.rho = parseFloat(uRho); 
-                    } else { 
-                        state.tool = 'select'; document.querySelector('[data-tool="select"]').click(); return; 
-                    }
-                } else if (typeStr === 'EmbC') {
-                    let uT = prompt("Enter Number of Turns (Fingers):", "12"); 
-                    let uL = prompt("Enter Finger Length (mm):", "20"); 
-                    if (uT && uL) { 
-                        params.turns = parseInt(uT); 
-                        params.length = parseFloat(uL); 
-                        params.spacing = 0.70;         
-                        params.permittivity = 1.5;     
-                    } else { 
-                        state.tool = 'select'; document.querySelector('[data-tool="select"]').click(); return; 
-                    }
-                } else if (typeStr === 'EmbL') {
-                    // --- ONLY ASK FOR TURNS ---
-                    let uT = prompt("Enter Number of Turns for RF Inductor:", "5");
-                    if (uT) {
-                        params.turns = parseInt(uT);
-                    } else {
-                        state.tool = 'select'; document.querySelector('[data-tool="select"]').click(); return;
-                    }
+
+                if (PASSIVE_EDITORS[typeStr]) {
+                    openPassiveDialog(typeStr, `${prefix}${num}`, [sX, sY]);
+                    return;
                 }
-                
+
+                saveState();
                 state.components.push(new Component(`${prefix}${num}`, typeStr, [sX, sY], params)); 
                 
                 // --- TRACKING COMPONENT PLACEMENT ---
@@ -8449,36 +9041,42 @@
         canvas.addEventListener('contextmenu', e => { e.preventDefault(); if (state.tool === 'route') { state.routingStartNode = null; render(); } });
 
         window.addEventListener('keydown', e => {
+            if (passiveDialog.open || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) return;
             if (e.key === 'Escape' || e.key === ' ') { if (state.tool === 'route' && state.routingStartNode) { state.routingStartNode = null; render(); if (e.key === ' ') e.preventDefault(); } return; }
             if (e.key.toLowerCase() === 'r' && state.tool === 'route') { state.routeMode = state.routeMode === 0 ? 1 : 0; render(); return; }
             if (e.ctrlKey || e.metaKey) {
-                if (e.key.toLowerCase() === 'z') { e.preventDefault(); if (state.undoStack.length > 0) { const current = { components: state.components.map(c => ({ id: c.id, ref: c.ref, type: c.type, posMm: [...c.posMm], rotDeg: c.rotDeg, params: JSON.parse(JSON.stringify(c.params)), customGeo: JSON.parse(JSON.stringify(c.customGeo)) })), traces: state.traces.map(t => ({ startNode: {...t.startNode}, endNode: {...t.endNode} })) }; state.redoStack.push(current); loadSnapshot(state.undoStack.pop()); updateStatus(); } }
-                else if (e.key.toLowerCase() === 'y') { e.preventDefault(); if (state.redoStack.length > 0) { const current = { components: state.components.map(c => ({ id: c.id, ref: c.ref, type: c.type, posMm: [...c.posMm], rotDeg: c.rotDeg, params: JSON.parse(JSON.stringify(c.params)), customGeo: JSON.parse(JSON.stringify(c.customGeo)) })), traces: state.traces.map(t => ({ startNode: {...t.startNode}, endNode: {...t.endNode} })) }; state.undoStack.push(current); loadSnapshot(state.redoStack.pop()); updateStatus(); } }
+                if (e.key.toLowerCase() === 'z') { e.preventDefault(); if (state.undoStack.length > 0) { const current = captureLayoutSnapshot(); state.redoStack.push(current); loadSnapshot(state.undoStack.pop()); updateStatus(); } }
+                else if (e.key.toLowerCase() === 'y') { e.preventDefault(); if (state.redoStack.length > 0) { const current = captureLayoutSnapshot(); state.undoStack.push(current); loadSnapshot(state.redoStack.pop()); updateStatus(); } }
                 else if (e.key.toLowerCase() === 'a') { e.preventDefault(); state.selected.clear(); state.components.forEach(c => state.selected.add(c)); state.traces.forEach(t => state.selected.add(t)); render(); } 
-                else if (e.key.toLowerCase() === 'c') { e.preventDefault(); state.clipboard = []; state.selected.forEach(item => { if (item.ref) { state.clipboard.push({ type: item.type, posMm: [...item.posMm], rotDeg: item.rotDeg, params: JSON.parse(JSON.stringify(item.params)) }); } }); updateStatus(); }
-                else if (e.key.toLowerCase() === 'v') { e.preventDefault(); if (!state.clipboard || state.clipboard.length === 0) return; saveState(); state.selected.clear(); state.clipboard.forEach(clip => { let prefix = "U"; if (clip.type === "EmbL") prefix = "L"; else if (clip.type.includes("R")) prefix = "R"; else if (clip.type.includes("C")) prefix = "C"; else if (clip.type.includes("PAD")) prefix = "P"; let num = 1; while (state.components.find(c => c.ref === `${prefix}${num}`)) num++; let newPos = [clip.posMm[0] + CONFIG.GRID_MM, clip.posMm[1] + CONFIG.GRID_MM]; let newComp = new Component(`${prefix}${num}`, clip.type, newPos, clip.params); newComp.rotDeg = clip.rotDeg; state.components.push(newComp); state.selected.add(newComp); clip.posMm = newPos; }); render(); }
+                else if (e.key.toLowerCase() === 'c') { e.preventDefault(); state.clipboard = []; state.selected.forEach(item => { if (item.ref) { state.clipboard.push({ type: item.type, posMm: [...item.posMm], rotDeg: item.rotDeg, params: JSON.parse(JSON.stringify(item.params)), customGeo: JSON.parse(JSON.stringify(item.customGeo)) }); } }); updateStatus(); }
+                else if (e.key.toLowerCase() === 'v') { e.preventDefault(); if (!state.clipboard || state.clipboard.length === 0) return; saveState(); state.selected.clear(); state.clipboard.forEach(clip => { let prefix = "U"; if (clip.type === "EmbL") prefix = "L"; else if (clip.type.includes("R")) prefix = "R"; else if (clip.type.includes("C")) prefix = "C"; else if (clip.type.includes("PAD")) prefix = "P"; let num = 1; while (state.components.find(c => c.ref === `${prefix}${num}`)) num++; let newPos = [clip.posMm[0] + CONFIG.GRID_MM, clip.posMm[1] + CONFIG.GRID_MM]; let newComp = new Component(`${prefix}${num}`, clip.type, newPos, clip.params, null, clip.customGeo); newComp.rotDeg = clip.rotDeg; state.components.push(newComp); state.selected.add(newComp); clip.posMm = newPos; }); render(); }
                 else if (e.key.toLowerCase() === 'd') { e.preventDefault(); document.getElementById('btn-delete').click(); }
             } else if (e.key === 'Delete' || e.key === 'Backspace') { if (state.selected.size > 0) document.getElementById('btn-delete').click(); }
         });
 
-        document.querySelectorAll('.tool-btn').forEach(btn => { btn.addEventListener('click', e => { document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); e.target.classList.add('active'); state.tool = e.target.dataset.tool; state.routingStartNode = null; updateStatus(); }); });
+        document.querySelectorAll('.tool-btn').forEach(btn => { btn.addEventListener('click', e => { document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); e.currentTarget.classList.add('active'); state.tool = e.currentTarget.dataset.tool; state.routingStartNode = null; updateStatus(); }); });
         document.getElementById('btn-rotate').addEventListener('click', () => { saveState(); state.selected.forEach(c => { if(c instanceof Component) c.rotDeg = (c.rotDeg + 90) % 360; }); render(); });
         document.getElementById('btn-delete').addEventListener('click', () => { saveState(); state.components = state.components.filter(c => !state.selected.has(c)); state.traces = state.traces.filter(t => !state.selected.has(t)); state.selected.clear(); render(); });
 
-        function updateStatus() { 
-            let msg = `Tool: ${state.tool} | Grid: ${CONFIG.GRID_MM}mm | Zoom: ${state.scale.toFixed(1)}x | Press 'R' to flip routing angle | Selected: ${state.selected.size}`;
+        function updateStatus() {
+            const selected = [...state.selected];
+            document.getElementById('btn-edit-passive').disabled = selected.length !== 1 || !PASSIVE_EDITORS[selected[0]?.type];
+            let msg = `Design area: ${CONFIG.BOARD_W_MM} × ${CONFIG.BOARD_H_MM} mm${areaExceedsReference() ? " (larger hoop required)" : ""} | Tool: ${state.tool} | Grid: ${CONFIG.GRID_MM}mm | Zoom: ${state.scale.toFixed(1)}x | Press 'R' to flip routing angle | Selected: ${state.selected.size}`;
             if (state.clipboard.length > 0) msg += ` | Copied: ${state.clipboard.length}`;
             document.getElementById('statusbar').innerText = msg;
         }
 
-        document.getElementById('btn-save').addEventListener('click', () => { const data = JSON.stringify({ components: state.components.map(c => ({id: c.id, ref: c.ref, type: c.type, posMm: c.posMm, rotDeg: c.rotDeg, params: c.params, customGeo: c.customGeo})), traces: state.traces.map(t => ({startNode: t.startNode, endNode: t.endNode})) }, null, 2); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], {type: "application/json"})); a.download = "layout.embpcb"; a.click(); });
-        document.getElementById('file-input').addEventListener('change', e => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { saveState(); const data = JSON.parse(ev.target.result); state.components = data.components.map(c => { let comp = new Component(c.ref, c.type, c.posMm, c.params, c.id); comp.rotDeg = c.rotDeg; comp.customGeo = c.customGeo; return comp; }); state.traces = data.traces.map(t => new Trace(t.startNode || t.startMm, t.endNode || t.endMm)); state.selected.clear(); render(); } catch (err) { alert("Invalid file format."); } }; reader.readAsText(file); });
-        document.getElementById('btn-new').addEventListener('click', () => { if(confirm("Clear the board?")) { saveState(); state.components = []; state.traces = []; state.selected.clear(); render(); } });
+        document.getElementById('btn-save').addEventListener('click', () => { const data = JSON.stringify(captureLayoutSnapshot(), null, 2); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], {type: "application/json"})); a.download = "layout.embpcb"; a.click(); });
+        document.getElementById('file-input').addEventListener('change', e => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { saveState(); const data = JSON.parse(ev.target.result); restoreDesignArea(data.board); state.components = data.components.map(c => { let comp = new Component(c.ref, c.type, c.posMm, c.params, c.id, c.customGeo); comp.rotDeg = c.rotDeg; return comp; }); state.traces = data.traces.map(t => new Trace(t.startNode || t.startMm, t.endNode || t.endMm)); state.selected.clear(); if (areaExceedsReference()) fitDesignAreaView(); render(); } catch (err) { alert("Invalid file format."); } }; reader.readAsText(file); });
+        document.getElementById('btn-new').addEventListener('click', () => { if(confirm("Clear the board?")) { saveState(); restoreDesignArea(DEFAULT_DESIGN_AREA); state.components = []; state.traces = []; state.selected.clear(); render(); } });
 
         // --- EDA to DST Export ---
         document.getElementById('btn-export-dst').addEventListener('click', async () => {
             const status = document.getElementById('statusbar'); status.innerText = "Exporting... Please wait.";
             const payload = {
+                design_area: { width_mm: CONFIG.BOARD_W_MM, height_mm: CONFIG.BOARD_H_MM },
+                reference_hoop: { width_mm: DEFAULT_DESIGN_AREA.widthMm, height_mm: DEFAULT_DESIGN_AREA.heightMm },
+                requires_larger_hoop: areaExceedsReference(),
                 stitch_distance_mm: CONFIG.DST_STITCH_MM,
                 stitch_length_mm: CONFIG.DST_STITCH_MM,
                 stitch_spacing_mm: CONFIG.DST_STITCH_MM,
